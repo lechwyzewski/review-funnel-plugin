@@ -80,8 +80,7 @@
     cursor: pointer;
     transition: opacity 0.2s;
     display: block;
-    text-align: center;
-    background-color: var(--wprf-btn-color, #007a78);
+    background: var(--wprf-btn-color, #007a78);
     color: var(--wprf-btn-text-color, #ffffff);
 }
 .wprf-submit-btn:hover {
@@ -121,8 +120,8 @@
     border: none !important;
     cursor: pointer !important;
     transition: opacity 0.2s !important;
-    background-color: var(--wprf-btn-color, #007a78);
-    color: var(--wprf-btn-text-color, #ffffff);
+    background: var(--wprf-btn-color, #007a78) !important;
+    color: var(--wprf-btn-text-color, #ffffff) !important;
 }
 .wprf-copy-btn:hover {
     opacity: 0.9 !important;

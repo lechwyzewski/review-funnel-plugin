@@ -608,7 +608,15 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 							<table class="form-table">
 								<tr>
 									<th scope="row"><label for="wprf_btn_color"><?php esc_html_e( 'Button Background Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_btn_color" name="wprf_btn_color" value="<?php echo esc_attr( $btn_color ); ?>"></td>
+									<td>
+										<?php
+										$picker_btn_val = ( strpos( $btn_color, '#' ) === 0 && strlen( $btn_color ) <= 7 ) ? $btn_color : '#007a78';
+										?>
+										<input type="color" id="wprf_btn_color_picker" value="<?php echo esc_attr( $picker_btn_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
+										<input type="text" id="wprf_btn_color" name="wprf_btn_color" value="<?php echo esc_attr( $btn_color ); ?>" class="regular-text" style="vertical-align: middle;">
+										<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_btn_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
+										<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #007a78) or CSS gradients (e.g. linear-gradient(135deg, #007a78 0%, #00a4a2 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
+									</td>
 								</tr>
 								<tr>
 									<th scope="row"><label for="wprf_btn_text_color"><?php esc_html_e( 'Button Text Color', 'review-funnel' ); ?></label></th>
@@ -644,6 +652,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 										?>
 										<input type="color" id="wprf_form_bg_color_picker" value="<?php echo esc_attr( $picker_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
 										<input type="text" id="wprf_form_bg_color" name="wprf_form_bg_color" value="<?php echo esc_attr( $form_bg_color ); ?>" class="regular-text" style="vertical-align: middle;">
+										<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_form_bg_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
 										<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #fdfdfd) or CSS gradients (e.g. linear-gradient(135deg, #ffffff 0%, #f7fafc 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
 									</td>
 								</tr>
@@ -977,6 +986,74 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						<p><em>* <?php esc_html_e( 'Note: Just like the reviews list, if the therapist has 0 reviews, this badge will automatically return nothing to hide the section cleanly.', 'review-funnel' ); ?></em></p>
 					</div>
 				</div>
+
+				<!-- GRADIENT GENERATOR MODAL -->
+				<div id="wprf-gradient-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:999999; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
+					<div style="background:#ffffff; max-width:480px; width:100%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); display:flex; flex-direction:column; overflow:hidden;">
+						<!-- Header -->
+						<div style="background:#f8fafc; padding:15px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; box-sizing:border-box;">
+							<h3 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;"><?php esc_html_e( '🎨 CSS Gradient Generator (PRO)', 'review-funnel' ); ?></h3>
+							<button type="button" id="wprf-close-gradient-btn" style="background:transparent; border:none; color:#94a3b8; font-size:24px; line-height:1; cursor:pointer; padding:0; outline:none;">&times;</button>
+						</div>
+						
+						<!-- Body -->
+						<div style="padding:20px; display:flex; flex-direction:column; gap:15px; box-sizing:border-box;">
+							<!-- Live Preview -->
+							<div>
+								<label style="display:block; font-weight:600; font-size:12px; color:#475569; margin-bottom:8px;"><?php esc_html_e( 'Live Preview', 'review-funnel' ); ?></label>
+								<div id="wprf-gradient-preview" style="height:100px; border-radius:8px; border:1px solid #cbd5e1; display:flex; align-items:center; justify-content:center; color:#ffffff; font-weight:bold; text-shadow:0 1px 3px rgba(0,0,0,0.4); box-shadow:inset 0 2px 4px rgba(0,0,0,0.06);">
+									<?php esc_html_e( 'Preview Area', 'review-funnel' ); ?>
+								</div>
+							</div>
+
+							<!-- Controls -->
+							<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+								<div>
+									<label style="display:block; font-weight:600; font-size:12px; color:#475569; margin-bottom:5px;"><?php esc_html_e( 'Color Stop 1', 'review-funnel' ); ?></label>
+									<div style="display:flex; gap:6px;">
+										<input type="color" id="wprf-grad-c1" value="#667eea" style="width:40px; height:32px; padding:0; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;">
+										<input type="text" id="wprf-grad-c1-hex" value="#667eea" style="width:75px; height:32px; font-size:12px; padding:4px; border:1px solid #cbd5e1; border-radius:4px; text-transform:uppercase; box-sizing:border-box;">
+									</div>
+								</div>
+								<div>
+									<label style="display:block; font-weight:600; font-size:12px; color:#475569; margin-bottom:5px;"><?php esc_html_e( 'Color Stop 2', 'review-funnel' ); ?></label>
+									<div style="display:flex; gap:6px;">
+										<input type="color" id="wprf-grad-c2" value="#764ba2" style="width:40px; height:32px; padding:0; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;">
+										<input type="text" id="wprf-grad-c2-hex" value="#764ba2" style="width:75px; height:32px; font-size:12px; padding:4px; border:1px solid #cbd5e1; border-radius:4px; text-transform:uppercase; box-sizing:border-box;">
+									</div>
+								</div>
+							</div>
+
+							<!-- Angle control -->
+							<div>
+								<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+									<label style="font-weight:600; font-size:12px; color:#475569;"><?php esc_html_e( 'Gradient Angle', 'review-funnel' ); ?></label>
+									<span id="wprf-grad-angle-val" style="font-size:12px; font-weight:bold; color:#475569;">135°</span>
+								</div>
+								<input type="range" id="wprf-grad-angle" min="0" max="360" value="135" style="width:100%; margin:0; cursor:pointer; display:block;">
+							</div>
+
+							<!-- Presets -->
+							<div>
+								<label style="display:block; font-weight:600; font-size:12px; color:#475569; margin-bottom:8px;"><?php esc_html_e( 'Premium Presets', 'review-funnel' ); ?></label>
+								<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #f6d365 0%, #fda085 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #f6d365 0%, #fda085 100%); outline:none;" title="Sunset Warmth"></button>
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #0b3c5d 0%, #328cc1 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #0b3c5d 0%, #328cc1 100%); outline:none;" title="Deep Ocean"></button>
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); outline:none;" title="Emerald Glow"></button>
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); outline:none;" title="Royal Plum"></button>
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); outline:none;" title="Clean Glass"></button>
+									<button type="button" class="wprf-grad-preset" data-g="linear-gradient(135deg, #2c3e50 0%, #3498db 100%)" style="height:32px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:linear-gradient(135deg, #2c3e50 0%, #3498db 100%); outline:none;" title="Modern Slate"></button>
+								</div>
+							</div>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background:#f8fafc; padding:12px 20px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px; box-sizing:border-box;">
+							<button type="button" id="wprf-cancel-gradient-btn" class="button button-secondary"><?php esc_html_e( 'Cancel', 'review-funnel' ); ?></button>
+							<button type="button" id="wprf-apply-gradient-btn" class="button button-primary"><?php esc_html_e( 'Apply Gradient', 'review-funnel' ); ?></button>
+						</div>
+					</div>
+				</div>
 			</div>
 
 			<script>
@@ -1027,6 +1104,132 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						}
 					});
 				}
+
+				// Link button background color picker and text field
+				const btnBgPicker = document.getElementById('wprf_btn_color_picker');
+				const btnBgInput = document.getElementById('wprf_btn_color');
+				if (btnBgPicker && btnBgInput) {
+					btnBgPicker.addEventListener('input', function() {
+						btnBgInput.value = this.value;
+					});
+					btnBgInput.addEventListener('input', function() {
+						const val = this.value.trim();
+						if (/^#[0-9A-F]{6}$/i.test(val)) {
+							btnBgPicker.value = val;
+						}
+					});
+				}
+
+				// --- Gradient Generator Modal logic ---
+				const gradModal = document.getElementById('wprf-gradient-modal');
+				const gradPreview = document.getElementById('wprf-gradient-preview');
+				const gradC1 = document.getElementById('wprf-grad-c1');
+				const gradC1Hex = document.getElementById('wprf-grad-c1-hex');
+				const gradC2 = document.getElementById('wprf-grad-c2');
+				const gradC2Hex = document.getElementById('wprf-grad-c2-hex');
+				const gradAngle = document.getElementById('wprf-grad-angle');
+				const gradAngleVal = document.getElementById('wprf-grad-angle-val');
+				const applyGradBtn = document.getElementById('wprf-apply-gradient-btn');
+				const cancelGradBtn = document.getElementById('wprf-cancel-gradient-btn');
+				const closeGradBtn = document.getElementById('wprf-close-gradient-btn');
+				
+				let currentTargetInputId = '';
+
+				function updateGradientPreview() {
+					const c1 = gradC1.value;
+					const c2 = gradC2.value;
+					const angle = gradAngle.value;
+					const css = `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+					gradPreview.style.background = css;
+					gradAngleVal.textContent = `${angle}°`;
+				}
+
+				gradC1.addEventListener('input', function() {
+					gradC1Hex.value = this.value;
+					updateGradientPreview();
+				});
+				gradC1Hex.addEventListener('input', function() {
+					const val = this.value.trim();
+					if (/^#[0-9A-F]{6}$/i.test(val)) {
+						gradC1.value = val;
+						updateGradientPreview();
+					}
+				});
+				gradC2.addEventListener('input', function() {
+					gradC2Hex.value = this.value;
+					updateGradientPreview();
+				});
+				gradC2Hex.addEventListener('input', function() {
+					const val = this.value.trim();
+					if (/^#[0-9A-F]{6}$/i.test(val)) {
+						gradC2.value = val;
+						updateGradientPreview();
+					}
+				});
+				gradAngle.addEventListener('input', updateGradientPreview);
+
+				document.querySelectorAll('.wprf-grad-preset').forEach(btn => {
+					btn.addEventListener('click', function() {
+						const g = this.getAttribute('data-g');
+						const matches = g.match(/linear-gradient\((\d+)deg,\s*(#[a-f0-9]+)\s+0%,\s*(#[a-f0-9]+)\s+100%\)/i);
+						if (matches) {
+							gradAngle.value = matches[1];
+							gradC1.value = matches[2];
+							gradC1Hex.value = matches[2];
+							gradC2.value = matches[3];
+							gradC2Hex.value = matches[3];
+							updateGradientPreview();
+						}
+					});
+				});
+
+				document.querySelectorAll('.wprf-open-gradient-generator').forEach(btn => {
+					btn.addEventListener('click', function() {
+						currentTargetInputId = this.getAttribute('data-target');
+						const currentInput = document.getElementById(currentTargetInputId);
+						if (currentInput) {
+							const currentVal = currentInput.value.trim();
+							const matches = currentVal.match(/linear-gradient\((\d+)deg,\s*(#[a-f0-9]+)\s+0%,\s*(#[a-f0-9]+)\s+100%\)/i);
+							if (matches) {
+								gradAngle.value = matches[1];
+								gradC1.value = matches[2];
+								gradC1Hex.value = matches[2];
+								gradC2.value = matches[3];
+								gradC2Hex.value = matches[3];
+							} else if (/^#[0-9A-F]{6}$/i.test(currentVal)) {
+								gradC1.value = currentVal;
+								gradC1Hex.value = currentVal;
+								gradC2.value = currentVal;
+								gradC2Hex.value = currentVal;
+							}
+							updateGradientPreview();
+							gradModal.style.display = 'flex';
+						}
+					});
+				});
+
+				function closeGradientModal() {
+					gradModal.style.display = 'none';
+					currentTargetInputId = '';
+				}
+				cancelGradBtn.addEventListener('click', closeGradientModal);
+				closeGradBtn.addEventListener('click', closeGradientModal);
+
+				applyGradBtn.addEventListener('click', function() {
+					if (currentTargetInputId) {
+						const c1 = gradC1.value;
+						const c2 = gradC2.value;
+						const angle = gradAngle.value;
+						const css = `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+						
+						const targetInput = document.getElementById(currentTargetInputId);
+						if (targetInput) {
+							targetInput.value = css;
+							targetInput.dispatchEvent(new Event('input'));
+						}
+					}
+					closeGradientModal();
+				});
 			});
 			</script>
 			<?php
@@ -1060,7 +1263,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				update_option( 'wprf_turnstile_site_key', sanitize_text_field( $_POST['wprf_turnstile_site_key'] ) );
 				update_option( 'wprf_turnstile_secret_key', sanitize_text_field( $_POST['wprf_turnstile_secret_key'] ) );
 
-				update_option( 'wprf_btn_color', sanitize_hex_color( $_POST['wprf_btn_color'] ) );
+				update_option( 'wprf_btn_color', sanitize_text_field( $_POST['wprf_btn_color'] ) );
 				update_option( 'wprf_btn_text_color', sanitize_hex_color( $_POST['wprf_btn_text_color'] ) );
 				update_option( 'wprf_slider_arrow_color', sanitize_hex_color( $_POST['wprf_slider_arrow_color'] ) );
 				update_option( 'wprf_slider_dot_color', sanitize_hex_color( $_POST['wprf_slider_dot_color'] ) );
