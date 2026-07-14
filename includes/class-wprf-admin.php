@@ -132,13 +132,33 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$orderby = isset( $_GET['orderby'] ) && isset( $allowed_orderby[ $_GET['orderby'] ] ) ? $allowed_orderby[ $_GET['orderby'] ] : 'time';
 			$order   = isset( $_GET['order'] ) && strtolower( $_GET['order'] ) === 'asc' ? 'ASC' : 'DESC';
 
-			$query .= " ORDER BY $orderby $order";
+			// 7. Calculate Pagination
+			$per_page = isset( $_GET['per_page'] ) ? max( 10, min( 100, intval( $_GET['per_page'] ) ) ) : 20;
+			$paged    = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
 
-			if ( ! empty( $query_params ) ) {
-				$reviews = $wpdb->get_results( $wpdb->prepare( $query, $query_params ) );
-			} else {
-				$reviews = $wpdb->get_results( $query );
+			// Query total matching items count
+			$count_query = "SELECT COUNT(*) FROM {$this->table_name}";
+			if ( ! empty( $where_clauses ) ) {
+				$count_query .= " WHERE " . implode( " AND ", $where_clauses );
 			}
+			if ( ! empty( $query_params ) ) {
+				$total_items = intval( $wpdb->get_var( $wpdb->prepare( $count_query, $query_params ) ) );
+			} else {
+				$total_items = intval( $wpdb->get_var( $count_query ) );
+			}
+
+			$total_pages = ceil( $total_items / $per_page );
+			$paged       = min( $paged, max( 1, $total_pages ) );
+			$offset      = ( $paged - 1 ) * $per_page;
+
+			$query .= " ORDER BY $orderby $order";
+			$query .= " LIMIT %d OFFSET %d";
+
+			$prepared_params = $query_params;
+			$prepared_params[] = $per_page;
+			$prepared_params[] = $offset;
+
+			$reviews = $wpdb->get_results( $wpdb->prepare( $query, $prepared_params ) );
 
 			// Sorting URLs construction helpers.
 			$query_args = $_GET;
@@ -346,17 +366,72 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						</form>
 					</div>
 
-					<!-- Bulk Actions Form -->
-					<div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: flex-start; max-width: 100%;">
-						<form method="post" action="?page=review-funnel" id="wprf-bulk-form" style="margin:0; display:flex; align-items:center; gap:8px;" onsubmit="return confirm('<?php esc_attr_e( 'Are you sure you want to delete all selected reviews?', 'review-funnel' ); ?>')">
-							<?php wp_nonce_field( 'wprf_bulk_delete_action', 'wprf_bulk_delete_nonce' ); ?>
-							<input type="hidden" name="wprf_admin_action" value="bulk_delete">
-							<select name="bulk_action" style="height:32px;" required>
-								<option value=""><?php esc_html_e( 'Bulk Actions', 'review-funnel' ); ?></option>
-								<option value="delete"><?php esc_html_e( 'Delete Permanently', 'review-funnel' ); ?></option>
-							</select>
-							<button type="submit" class="button action"><?php esc_html_e( 'Apply', 'review-funnel' ); ?></button>
-						</form>
+					<!-- Top Pagination Navigation Bar -->
+					<div class="tablenav top" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+						<!-- Bulk Actions Form -->
+						<div style="display: flex; align-items: center;">
+							<form method="post" action="?page=review-funnel" id="wprf-bulk-form" style="margin:0; display:flex; align-items:center; gap:8px;" onsubmit="return confirm('<?php esc_attr_e( 'Are you sure you want to delete all selected reviews?', 'review-funnel' ); ?>')">
+								<?php wp_nonce_field( 'wprf_bulk_delete_action', 'wprf_bulk_delete_nonce' ); ?>
+								<input type="hidden" name="wprf_admin_action" value="bulk_delete">
+								<select name="bulk_action" style="height:32px;" required>
+									<option value=""><?php esc_html_e( 'Bulk Actions', 'review-funnel' ); ?></option>
+									<option value="delete"><?php esc_html_e( 'Delete Permanently', 'review-funnel' ); ?></option>
+								</select>
+								<button type="submit" class="button action"><?php esc_html_e( 'Apply', 'review-funnel' ); ?></button>
+							</form>
+						</div>
+
+						<!-- Per Page Selector & Info -->
+						<div style="display: flex; align-items: center; gap: 15px;">
+							<form method="get" action="" style="margin:0; display:inline-flex; align-items:center; gap:8px;">
+								<input type="hidden" name="page" value="review-funnel">
+								<?php
+								foreach ( $_GET as $key => $val ) {
+									if ( in_array( $key, array( 'page', 'per_page', 'paged' ) ) ) continue;
+									echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( $val ) . '">';
+								}
+								?>
+								<label for="wprf_per_page" style="font-size: 13px; color: #4a5568; font-weight: bold;"><?php esc_html_e( 'Show:', 'review-funnel' ); ?></label>
+								<select id="wprf_per_page" name="per_page" onchange="this.form.submit()" style="height: 30px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0 8px; font-size: 13px; background: #fff; line-height: 28px; cursor: pointer;">
+									<option value="10" <?php selected( $per_page, 10 ); ?>>10</option>
+									<option value="20" <?php selected( $per_page, 20 ); ?>>20</option>
+									<option value="50" <?php selected( $per_page, 50 ); ?>>50</option>
+									<option value="100" <?php selected( $per_page, 100 ); ?>>100</option>
+								</select>
+							</form>
+
+							<span style="font-size: 13px; color: #666;">
+								<?php
+								printf(
+									/* translators: 1: total items count */
+									esc_html( _n( '%d item', '%d items', $total_items, 'review-funnel' ) ),
+									$total_items
+								);
+								?>
+							</span>
+						</div>
+
+						<!-- Pagination Links -->
+						<?php if ( $total_pages > 1 ) : ?>
+							<div class="tablenav-pages" style="display: flex; align-items: center; gap: 4px;">
+								<?php
+								$pagination_args = array(
+									'base'      => add_query_arg( 'paged', '%#%' ),
+									'format'    => '',
+									'total'     => $total_pages,
+									'current'   => $paged,
+									'show_all'  => false,
+									'end_size'  => 1,
+									'mid_size'  => 2,
+									'prev_next' => true,
+									'prev_text' => __( '&laquo;', 'review-funnel' ),
+									'next_text' => __( '&raquo;', 'review-funnel' ),
+									'type'      => 'plain',
+								);
+								echo paginate_links( $pagination_args );
+								?>
+							</div>
+						<?php endif; ?>
 					</div>
 
 					<table class="wp-list-table widefat fixed striped">
@@ -434,6 +509,15 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 							<?php endif; ?>
 						</tbody>
 					</table>
+
+					<!-- Bottom Pagination Navigation Bar -->
+					<?php if ( $total_pages > 1 ) : ?>
+						<div class="tablenav bottom" style="margin-top: 15px; display: flex; align-items: center; justify-content: flex-end;">
+							<div class="tablenav-pages" style="display: flex; align-items: center; gap: 4px;">
+								<?php echo paginate_links( $pagination_args ); ?>
+							</div>
+						</div>
+					<?php endif; ?>
 				</div>
 
 				<!-- TAB 2: SETTINGS & CUSTOMIZATION -->
