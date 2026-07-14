@@ -197,6 +197,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$enable_turnstile     = get_option( 'wprf_enable_turnstile', 'no' );
 			$turnstile_site_key   = get_option( 'wprf_turnstile_site_key', '' );
 			$turnstile_secret_key = get_option( 'wprf_turnstile_secret_key', '' );
+			$disable_ip_rate_limit = get_option( 'wprf_disable_ip_rate_limit', 'no' );
 
 			// Customization options (PRO)
 			$show_review_date   = get_option( 'wprf_show_review_date', 'yes' );
@@ -543,6 +544,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<td>
 										<input type="password" id="wprf_turnstile_secret_key" name="wprf_turnstile_secret_key" value="<?php echo esc_attr( $turnstile_secret_key ); ?>" class="regular-text">
 										<p class="description"><?php esc_html_e( 'Enter your Turnstile Secret Key.', 'review-funnel' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_disable_ip_rate_limit"><?php esc_html_e( 'Disable IP Rate Limiting (Dev Mode)', 'review-funnel' ); ?></label></th>
+									<td>
+										<input type="checkbox" id="wprf_disable_ip_rate_limit" name="wprf_disable_ip_rate_limit" value="yes" <?php checked( $disable_ip_rate_limit, 'yes' ); ?>>
+										<span class="description"><?php esc_html_e( 'Bypass the 1-hour IP submission limit. Use this for testing/development. Uncheck in production to prevent spam.', 'review-funnel' ); ?></span>
 									</td>
 								</tr>
 							</table>
@@ -1262,6 +1270,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				update_option( 'wprf_enable_turnstile', isset( $_POST['wprf_enable_turnstile'] ) ? 'yes' : 'no' );
 				update_option( 'wprf_turnstile_site_key', sanitize_text_field( $_POST['wprf_turnstile_site_key'] ) );
 				update_option( 'wprf_turnstile_secret_key', sanitize_text_field( $_POST['wprf_turnstile_secret_key'] ) );
+				update_option( 'wprf_disable_ip_rate_limit', isset( $_POST['wprf_disable_ip_rate_limit'] ) ? 'yes' : 'no' );
 
 				update_option( 'wprf_btn_color', sanitize_text_field( $_POST['wprf_btn_color'] ) );
 				update_option( 'wprf_btn_text_color', sanitize_hex_color( $_POST['wprf_btn_text_color'] ) );

@@ -592,9 +592,10 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			}
 
 			// Rate limiting check
+			$disable_rate_limit = get_option( 'wprf_disable_ip_rate_limit', 'no' );
 			$user_ip = $this->get_user_ip();
 			$transient_key = 'wprf_limit_' . md5( $user_ip );
-			if ( get_transient( $transient_key ) ) {
+			if ( 'yes' !== $disable_rate_limit && get_transient( $transient_key ) ) {
 				wp_send_json_error( array( 'message' => __( 'You have already submitted a review recently. Please try again in an hour.', 'review-funnel' ) ) );
 			}
 
@@ -680,7 +681,9 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			}
 
 			// Save rate limiting transient on success
-			set_transient( $transient_key, true, 3600 );
+			if ( 'yes' !== $disable_rate_limit ) {
+				set_transient( $transient_key, true, 3600 );
+			}
 
 			// MailerLite automated list subscription if user checked opt-in
 			if ( $marketing_consent_db && ! empty( $email ) ) {
