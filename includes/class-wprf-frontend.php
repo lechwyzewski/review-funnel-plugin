@@ -86,6 +86,8 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				'text_color'       => $text_color,
 				'slider_dot_color' => $slider_dot_color,
 				't_gdpr_error'     => $gdpr_error,
+				't_read_more'      => __( 'read more', 'review-funnel' ),
+				't_read_less'      => __( 'read less', 'review-funnel' ),
 			) );
 		}
 
@@ -247,22 +249,24 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			wp_enqueue_script( 'wprf-frontend' );
 
 			$a = shortcode_atts( array(
-				'id'        => '',
-				'count'     => '6',
-				'columns'   => '3',
-				'layout'    => 'grid', // 'grid' or 'slider'
-				'autoplay'  => '0',    // milliseconds, e.g. 5000, 0 = disabled
-				'arrows'    => 'true', // 'true' or 'false'
-				'dots'      => 'true', // 'true' or 'false'
-				'show_date' => '',
+				'id'         => '',
+				'count'      => '6',
+				'columns'    => '3',
+				'layout'     => 'grid', // 'grid' or 'slider'
+				'autoplay'   => '0',    // milliseconds, e.g. 5000, 0 = disabled
+				'arrows'     => 'true', // 'true' or 'false'
+				'dots'       => 'true', // 'true' or 'false'
+				'show_date'  => '',
+				'char_limit' => '180',
 			), $atts );
 
-			$count    = absint( $a['count'] );
-			$columns  = absint( $a['columns'] );
-			$layout   = sanitize_text_field( $a['layout'] );
-			$autoplay = absint( $a['autoplay'] );
-			$arrows   = sanitize_text_field( $a['arrows'] );
-			$dots     = sanitize_text_field( $a['dots'] );
+			$count      = absint( $a['count'] );
+			$columns    = absint( $a['columns'] );
+			$layout     = sanitize_text_field( $a['layout'] );
+			$autoplay   = absint( $a['autoplay'] );
+			$arrows     = sanitize_text_field( $a['arrows'] );
+			$dots       = sanitize_text_field( $a['dots'] );
+			$char_limit = isset( $a['char_limit'] ) ? intval( $a['char_limit'] ) : 180;
 
 			if ( $columns < 1 || $columns > 4 ) {
 				$columns = 3;
@@ -347,7 +351,24 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 											<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
 											<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 										</div>
-										<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
+										<p class="wprf-text">
+											<?php
+											$text = $res->review_text;
+											if ( $char_limit > 0 && mb_strlen( $text, 'UTF-8' ) > $char_limit ) {
+												$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
+												$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
+												?>
+												<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
+												<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
+												<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php esc_html_e( 'read more', 'review-funnel' ); ?></span>
+												<?php
+											} else {
+												?>
+												"<?php echo esc_html( $text ); ?>"
+												<?php
+											}
+											?>
+										</p>
 										<?php if ( 'yes' === $show_date ) : ?>
 											<small class="wprf-date" style="color: <?php echo esc_attr( $date_color ); ?>; font-size: <?php echo esc_attr( $date_size ); ?>; display: block; margin-top: 8px;">
 												<?php echo esc_html( date( 'd.m.Y', strtotime( $res->time ) ) ); ?>
@@ -390,7 +411,24 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 									<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
 									<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 								</div>
-								<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
+								<p class="wprf-text">
+									<?php
+									$text = $res->review_text;
+									if ( $char_limit > 0 && mb_strlen( $text, 'UTF-8' ) > $char_limit ) {
+										$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
+										$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
+										?>
+										<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
+										<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
+										<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php esc_html_e( 'read more', 'review-funnel' ); ?></span>
+										<?php
+									} else {
+										?>
+										"<?php echo esc_html( $text ); ?>"
+										<?php
+									}
+									?>
+								</p>
 								<?php if ( 'yes' === $show_date ) : ?>
 									<small class="wprf-date" style="color: <?php echo esc_attr( $date_color ); ?>; font-size: <?php echo esc_attr( $date_size ); ?>; display: block; margin-top: 8px;">
 										<?php echo esc_html( date( 'd.m.Y', strtotime( $res->time ) ) ); ?>

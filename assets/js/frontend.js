@@ -336,3 +336,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Toggle Read More / Read Less behavior for long review texts
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('wprf-readmore-toggle')) {
+        const card = e.target.closest('.wprf-review-card');
+        if (card) {
+            const moreText = card.querySelector('.wprf-text-more');
+            if (moreText) {
+                if (moreText.style.display === 'none') {
+                    moreText.style.display = 'inline';
+                    e.target.innerText = wprf_frontend_vars.t_read_less || 'read less';
+                } else {
+                    moreText.style.display = 'none';
+                    e.target.innerText = wprf_frontend_vars.t_read_more || 'read more';
+                }
+                
+                // If this is inside a slider, trigger window resize event to recalculate slide heights/positions
+                const slider = card.closest('.wprf-slider-container');
+                if (slider) {
+                    window.dispatchEvent(new Event('resize'));
+                }
+            }
+        }
+    }
+});
