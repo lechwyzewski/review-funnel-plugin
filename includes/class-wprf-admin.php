@@ -288,6 +288,8 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$t_review_single     = isset( $translations['review_single'] ) ? $translations['review_single'] : 'review';
 			$t_review_plural_234 = isset( $translations['review_plural_234'] ) ? $translations['review_plural_234'] : 'reviews';
 			$t_review_plural_5plus = isset( $translations['review_plural_5plus'] ) ? $translations['review_plural_5plus'] : 'reviews';
+			$t_read_more         = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
+			$t_read_less         = isset( $translations['read_less'] ) ? $translations['read_less'] : 'read less';
 			?>
 			<div class="wrap">
 				<h1><?php esc_html_e( 'Review Funnel & Google Maps Integration', 'review-funnel' ); ?></h1>
@@ -978,6 +980,14 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								<tr>
 									<th scope="row"><label for="wprf_t_review_plural_5plus"><?php esc_html_e( 'Review Label (Plural 5+ / 0, e.g. "reviews" / "ocen")', 'review-funnel' ); ?></label></th>
 									<td><input type="text" id="wprf_t_review_plural_5plus" name="wprf_t[review_plural_5plus]" value="<?php echo esc_attr( $t_review_plural_5plus ); ?>" class="large-text"></td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_t_read_more"><?php esc_html_e( 'Read More Link Text', 'review-funnel' ); ?></label></th>
+									<td><input type="text" id="wprf_t_read_more" name="wprf_t[read_more]" value="<?php echo esc_attr( $t_read_more ); ?>" class="large-text"></td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_t_read_less"><?php esc_html_e( 'Read Less Link Text', 'review-funnel' ); ?></label></th>
+									<td><input type="text" id="wprf_t_read_less" name="wprf_t[read_less]" value="<?php echo esc_attr( $t_read_less ); ?>" class="large-text"></td>
 								</tr>
 							</table>
 						</div>

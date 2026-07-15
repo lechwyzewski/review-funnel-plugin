@@ -346,10 +346,12 @@ document.addEventListener('click', function(e) {
             if (moreText) {
                 if (moreText.style.display === 'none') {
                     moreText.style.display = 'inline';
-                    e.target.innerText = wprf_frontend_vars.t_read_less || 'read less';
+                    const readLess = (typeof wprf_frontend_vars !== 'undefined' && wprf_frontend_vars.t_read_less) ? wprf_frontend_vars.t_read_less : 'read less';
+                    e.target.innerText = readLess;
                 } else {
                     moreText.style.display = 'none';
-                    e.target.innerText = wprf_frontend_vars.t_read_more || 'read more';
+                    const readMore = (typeof wprf_frontend_vars !== 'undefined' && wprf_frontend_vars.t_read_more) ? wprf_frontend_vars.t_read_more : 'read more';
+                    e.target.innerText = readMore;
                 }
                 
                 // If this is inside a slider, trigger window resize event to recalculate slide heights/positions

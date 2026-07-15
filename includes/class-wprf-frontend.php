@@ -55,7 +55,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 		 */
 		public function register_frontend_assets() {
 			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.0' );
-			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.0', true );
+			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.1', true );
 			wp_register_script( 'wprf-turnstile', 'https://challenges.cloudflare.com/turnstile/v0/api.js', array(), null, true );
 
 			// Fetch translations and settings for localization
@@ -67,6 +67,8 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			$t_clipboard_msg = isset( $translations['clipboard_msg'] ) ? $translations['clipboard_msg'] : '(Your feedback text has been automatically copied to your clipboard!)';
 			$t_copy_btn      = isset( $translations['copy_btn'] ) ? $translations['copy_btn'] : 'Copy Your Review';
 			$t_js_copied     = isset( $translations['js_copied'] ) ? $translations['js_copied'] : 'Copied!';
+			$t_read_more     = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
+			$t_read_less     = isset( $translations['read_less'] ) ? $translations['read_less'] : 'read less';
 			
 			$btn_color       = get_option( 'wprf_btn_color', '#007a78' );
 			$text_color      = get_option( 'wprf_btn_text_color', '#ffffff' );
@@ -86,8 +88,8 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				'text_color'       => $text_color,
 				'slider_dot_color' => $slider_dot_color,
 				't_gdpr_error'     => $gdpr_error,
-				't_read_more'      => __( 'read more', 'review-funnel' ),
-				't_read_less'      => __( 'read less', 'review-funnel' ),
+				't_read_more'      => $t_read_more,
+				't_read_less'      => $t_read_less,
 			) );
 		}
 
@@ -315,6 +317,9 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			$date_color         = get_option( 'wprf_review_date_color', '#718096' );
 			$date_size          = get_option( 'wprf_review_date_size', '11px' );
 
+			$translations       = get_option( 'wprf_translations', array() );
+			$t_read_more        = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
+
 			// Compute stats for SEO JSON-LD
 			$total_rating_val = 0;
 			$total_count      = count( $results );
@@ -360,7 +365,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 												?>
 												<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
 												<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
-												<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php esc_html_e( 'read more', 'review-funnel' ); ?></span>
+												<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
 												<?php
 											} else {
 												?>
@@ -420,7 +425,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 										?>
 										<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
 										<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
-										<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php esc_html_e( 'read more', 'review-funnel' ); ?></span>
+										<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
 										<?php
 									} else {
 										?>
