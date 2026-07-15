@@ -344,7 +344,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 								<?php foreach ( $results as $res ) : ?>
 									<div class="wprf-slider-slide wprf-review-card">
 										<div class="wprf-card-header">
-											<strong class="wprf-author"><?php echo esc_html( ! empty( $res->author_name ) ? $res->author_name : __( 'Anonim', 'review-funnel' ) ); ?></strong>
+											<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
 											<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 										</div>
 										<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
@@ -387,7 +387,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 						<?php foreach ( $results as $res ) : ?>
 							<div class="wprf-review-card">
 								<div class="wprf-card-header">
-									<strong class="wprf-author"><?php echo esc_html( ! empty( $res->author_name ) ? $res->author_name : __( 'Anonim', 'review-funnel' ) ); ?></strong>
+									<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
 									<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 								</div>
 								<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
@@ -569,7 +569,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 						'@type'         => 'Review',
 						'author'        => array(
 							'@type' => 'Person',
-							'name'  => esc_html( ! empty( $rev->author_name ) ? $rev->author_name : __( 'Anonim', 'review-funnel' ) ),
+							'name'  => esc_html( ! empty( $rev->author_name ) ? $rev->author_name : __( 'Anonymous', 'review-funnel' ) ),
 						),
 						'datePublished' => date( 'Y-m-d', strtotime( $rev->time ) ),
 						'reviewBody'    => esc_html( $rev->review_text ),
