@@ -195,7 +195,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 
 					<div class="wprf-input-group">
 						<label for="wprf_author"><?php echo esc_html( $t_input_name ); ?></label>
-						<input type="text" id="wprf_author" name="wprf_author" required placeholder="<?php echo esc_attr( $t_input_name_p ); ?>">
+						<input type="text" id="wprf_author" name="wprf_author" placeholder="<?php echo esc_attr( $t_input_name_p ); ?>">
 					</div>
 
 					<div class="wprf-input-group">
@@ -247,13 +247,14 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			wp_enqueue_script( 'wprf-frontend' );
 
 			$a = shortcode_atts( array(
-				'id'       => '',
-				'count'    => '6',
-				'columns'  => '3',
-				'layout'   => 'grid', // 'grid' or 'slider'
-				'autoplay' => '0',    // milliseconds, e.g. 5000, 0 = disabled
-				'arrows'   => 'true', // 'true' or 'false'
-				'dots'     => 'true', // 'true' or 'false'
+				'id'        => '',
+				'count'     => '6',
+				'columns'   => '3',
+				'layout'    => 'grid', // 'grid' or 'slider'
+				'autoplay'  => '0',    // milliseconds, e.g. 5000, 0 = disabled
+				'arrows'    => 'true', // 'true' or 'false'
+				'dots'      => 'true', // 'true' or 'false'
+				'show_date' => '',
 			), $atts );
 
 			$count    = absint( $a['count'] );
@@ -299,7 +300,14 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			$slider_dot_color   = get_option( 'wprf_slider_dot_color', '#007a78' );
 			$slider_arrow_style = get_option( 'wprf_slider_arrow_style', 'circle' );
 
-			$show_date          = get_option( 'wprf_show_review_date', 'yes' );
+			$show_date_opt      = get_option( 'wprf_show_review_date', 'yes' );
+			$show_date_attr     = isset( $a['show_date'] ) ? trim( strtolower( $a['show_date'] ) ) : '';
+			$show_date          = $show_date_opt;
+			if ( 'false' === $show_date_attr || 'no' === $show_date_attr ) {
+				$show_date = 'no';
+			} elseif ( 'true' === $show_date_attr || 'yes' === $show_date_attr ) {
+				$show_date = 'yes';
+			}
 			$date_color         = get_option( 'wprf_review_date_color', '#718096' );
 			$date_size          = get_option( 'wprf_review_date_size', '11px' );
 
@@ -336,7 +344,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 								<?php foreach ( $results as $res ) : ?>
 									<div class="wprf-slider-slide wprf-review-card">
 										<div class="wprf-card-header">
-											<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
+											<strong class="wprf-author"><?php echo esc_html( ! empty( $res->author_name ) ? $res->author_name : __( 'Anonim', 'review-funnel' ) ); ?></strong>
 											<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 										</div>
 										<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
@@ -379,7 +387,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 						<?php foreach ( $results as $res ) : ?>
 							<div class="wprf-review-card">
 								<div class="wprf-card-header">
-									<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
+									<strong class="wprf-author"><?php echo esc_html( ! empty( $res->author_name ) ? $res->author_name : __( 'Anonim', 'review-funnel' ) ); ?></strong>
 									<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
 								</div>
 								<p class="wprf-text">"<?php echo esc_html( $res->review_text ); ?>"</p>
@@ -561,7 +569,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 						'@type'         => 'Review',
 						'author'        => array(
 							'@type' => 'Person',
-							'name'  => esc_html( $rev->author_name ),
+							'name'  => esc_html( ! empty( $rev->author_name ) ? $rev->author_name : __( 'Anonim', 'review-funnel' ) ),
 						),
 						'datePublished' => date( 'Y-m-d', strtotime( $rev->time ) ),
 						'reviewBody'    => esc_html( $rev->review_text ),
@@ -651,7 +659,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			$text        = isset( $_POST['text'] ) ? sanitize_textarea_field( $_POST['text'] ) : '';
 			$profile_id  = isset( $_POST['profile_id'] ) ? sanitize_text_field( $_POST['profile_id'] ) : 'general';
 
-			if ( ! $rating || empty( $author ) || empty( $text ) ) {
+			if ( ! $rating || empty( $text ) ) {
 				wp_send_json_error( array( 'message' => __( 'Please complete all required fields.', 'review-funnel' ) ) );
 			}
 

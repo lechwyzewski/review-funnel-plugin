@@ -457,7 +457,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 											<input type="checkbox" name="bulk_reviews[]" value="<?php echo esc_attr( $rev->id ); ?>" form="wprf-bulk-form" class="wprf-row-checkbox" style="margin:0;">
 										</td>
 										<td>
-											<?php echo esc_html( $rev->time ); ?><br>
+											<input type="text" name="edited_review_date" value="<?php echo esc_attr( date( 'Y-m-d H:i:s', strtotime( $rev->time ) ) ); ?>" form="form-rev-<?php echo esc_attr( $rev->id ); ?>" style="width: 100%; font-size: 11px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; margin-bottom: 5px;" required>
 											<span style="font-size:11px; color:#666; font-weight:bold;">
 												<?php echo $rev->google_review_id ? '🌐 Google Maps' : '📝 Web Form'; ?>
 											</span>
@@ -1469,6 +1469,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				if ( 'approve_and_save' === $action ) {
 					$updated_text     = sanitize_textarea_field( $_POST['edited_review_text'] );
 					$assigned_profile = sanitize_text_field( $_POST['assigned_profile_id'] );
+					$updated_date     = isset( $_POST['edited_review_date'] ) ? sanitize_text_field( $_POST['edited_review_date'] ) : '';
 
 					if ( empty( $assigned_profile ) ) {
 						$assigned_profile = 'general';
@@ -1479,13 +1480,22 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						$review_status = 'pending';
 					}
 
+					$update_fields = array(
+						'status'      => $review_status,
+						'review_text' => $updated_text,
+						'profile_id'  => $assigned_profile,
+					);
+
+					if ( ! empty( $updated_date ) ) {
+						$time_parsed = strtotime( $updated_date );
+						if ( $time_parsed ) {
+							$update_fields['time'] = date( 'Y-m-d H:i:s', $time_parsed );
+						}
+					}
+
 					$wpdb->update(
 						$this->table_name, 
-						array(
-							'status'      => $review_status,
-							'review_text' => $updated_text,
-							'profile_id'  => $assigned_profile,
-						), 
+						$update_fields, 
 						array( 'id' => $review_id )
 					);
 					echo '<div class="updated"><p>' . esc_html__( 'Review dataset modified and saved successfully.', 'review-funnel' ) . '</p></div>';
