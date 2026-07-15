@@ -55,7 +55,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 		 */
 		public function register_frontend_assets() {
 			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.0' );
-			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.1', true );
+			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.2', true );
 			wp_register_script( 'wprf-turnstile', 'https://challenges.cloudflare.com/turnstile/v0/api.js', array(), null, true );
 
 			// Fetch translations and settings for localization
@@ -363,8 +363,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 												$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
 												$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
 												?>
-												<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
-												<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
+												<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span><span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
 												<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
 												<?php
 											} else {
@@ -423,8 +422,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 										$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
 										$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
 										?>
-										<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span>
-										<span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
+										<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span><span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
 										<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
 										<?php
 									} else {
