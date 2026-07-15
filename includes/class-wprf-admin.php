@@ -1062,11 +1062,16 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<td>Show review date inside review cards. Allowed values: <code>true</code> / <code>yes</code>, <code>false</code> / <code>no</code>. Overrides the global setting.</td>
 									<td><code>[review_list show_date="false"]</code></td>
 								</tr>
+								<tr>
+									<td><strong>char_limit</strong></td>
+									<td>Limit the visible review text length to a specific number of characters. Displays an interactive "read more" link for long reviews. Set to <code>0</code> to disable truncation. Default is <code>180</code>.</td>
+									<td><code>[review_list char_limit="150"]</code></td>
+								</tr>
 							</tbody>
 						</table>
 
 						<p><strong><?php esc_html_e( 'Comprehensive Slider Example:', 'review-funnel' ); ?></strong><br>
-						<code>[review_list id="john-smith, main" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true" show_date="true"]</code></p>
+						<code>[review_list id="john-smith, main" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true" show_date="true" char_limit="150"]</code></p>
 						
 						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
 
