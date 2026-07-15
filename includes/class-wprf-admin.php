@@ -992,23 +992,23 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				<div id="tab-shortcodes" class="tab-content-section" style="margin-top: 20px; display: none;">
 					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:100%;">
 						<h2><span class="dashicons dashicons-editor-code" style="vertical-align: middle;"></span> <?php esc_html_e( 'Plugin Deployment Shortcodes Documentation', 'review-funnel' ); ?></h2>
-						<p><?php esc_html_e( 'Copy and paste these localized English shortcodes anywhere inside text modules or Divi code areas.', 'review-funnel' ); ?></p>
+						<p><?php esc_html_e( 'Copy and paste these English shortcodes anywhere inside text modules or page builder code areas.', 'review-funnel' ); ?></p>
 						
 						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
 						
 						<h3>1. Review Collection Funnel (Form)</h3>
 						<p><?php esc_html_e( 'Use this shortcode to display the multi-step rating form. Any reviews submitted will be attached to the assigned profile ID.', 'review-funnel' ); ?></p>
-						<p><strong><?php esc_html_e( 'Shortcode variations:', 'review-funnel' ); ?></strong> <code>[review_funnel]</code> <?php esc_html_e( 'or', 'review-funnel' ); ?> <code>[lejek_opinii]</code></p>
+						<p><strong><?php esc_html_e( 'Shortcode:', 'review-funnel' ); ?></strong> <code>[review_funnel]</code></p>
 						<ul>
-							<li><code>id</code> - <?php esc_html_e( 'Unique context string to identify the profile (e.g. id="anna-dubaj").', 'review-funnel' ); ?></li>
-							<li><strong><?php esc_html_e( 'Example:', 'review-funnel' ); ?></strong> <code>[review_funnel id="anna-dubaj"]</code></li>
+							<li><code>id</code> - <?php esc_html_e( 'Unique context string to identify the profile (e.g. id="john-smith").', 'review-funnel' ); ?></li>
+							<li><strong><?php esc_html_e( 'Example:', 'review-funnel' ); ?></strong> <code>[review_funnel id="john-smith"]</code></li>
 						</ul>
 						
 						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
 						
 						<h3>2. Reviews List / Carousel Renderer</h3>
 						<p><?php esc_html_e( 'Use this shortcode to display approved reviews on your frontend. You can toggle between a classic Grid card layout and an interactive Slider (Carousel) layout.', 'review-funnel' ); ?></p>
-						<p><strong><?php esc_html_e( 'Shortcode variations:', 'review-funnel' ); ?></strong> <code>[review_list]</code> <?php esc_html_e( 'or', 'review-funnel' ); ?> <code>[wyswietl_opinie]</code></p>
+						<p><strong><?php esc_html_e( 'Shortcode:', 'review-funnel' ); ?></strong> <code>[review_list]</code></p>
 						
 						<table class="widefat" style="margin-top: 15px; margin-bottom: 20px; max-width: 100%;">
 							<thead>
@@ -1021,8 +1021,8 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 							<tbody>
 								<tr>
 									<td><strong>id</strong></td>
-									<td>Filter reviews by profile ID. Supports multiple comma-separated IDs (e.g. <code>id="anna-dubaj, glowna"</code>). Leave empty to display all.</td>
-									<td><code>[review_list id="anna-dubaj"]</code></td>
+									<td>Filter reviews by profile ID. Supports multiple comma-separated IDs (e.g. <code>id="john-smith, main"</code>). Leave empty to display all.</td>
+									<td><code>[review_list id="john-smith"]</code></td>
 								</tr>
 								<tr>
 									<td><strong>count</strong></td>
@@ -1057,23 +1057,29 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<td>Show navigation/pagination bullets at the bottom for the slider layout. Allowed values: <code>true</code> (default), <code>false</code>.</td>
 									<td><code>[review_list layout="slider" dots="true"]</code></td>
 								</tr>
+								<tr>
+									<td><strong>show_date</strong></td>
+									<td>Show review date inside review cards. Allowed values: <code>true</code> / <code>yes</code>, <code>false</code> / <code>no</code>. Overrides the global setting.</td>
+									<td><code>[review_list show_date="false"]</code></td>
+								</tr>
 							</tbody>
 						</table>
 
 						<p><strong><?php esc_html_e( 'Comprehensive Slider Example:', 'review-funnel' ); ?></strong><br>
-						<code>[review_list id="anna-dubaj, glowna" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true"]</code></p>
+						<code>[review_list id="john-smith, main" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true" show_date="true"]</code></p>
 						
 						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
 
-						<h3>3. Average Rating Badge: <code>[review_badge]</code> / <code>[average_rating]</code> / <code>[srednia_ocen]</code></h3>
+						<h3>3. Average Rating Badge</h3>
 						<p><?php esc_html_e( 'Use this shortcode to display only the average star rating and total count (e.g. for listing/bio headers), without actual review text.', 'review-funnel' ); ?></p>
+						<p><strong><?php esc_html_e( 'Shortcode variations:', 'review-funnel' ); ?></strong> <code>[review_badge]</code> <?php esc_html_e( 'or', 'review-funnel' ); ?> <code>[average_rating]</code></p>
 						<ul>
-							<li><code>id</code> - <?php esc_html_e( 'Filter reviews by profile ID. Supports multiple comma-separated IDs (e.g. id="anna-dubaj, glowna"). Leave empty to calculate average for all reviews.', 'review-funnel' ); ?></li>
+							<li><code>id</code> - <?php esc_html_e( 'Filter reviews by profile ID. Supports multiple comma-separated IDs (e.g. id="john-smith, main"). Leave empty to calculate average for all reviews.', 'review-funnel' ); ?></li>
 							<li><code>star_color</code> - <?php esc_html_e( 'Hex color of stars (Default: #ffcc00).', 'review-funnel' ); ?></li>
 							<li><code>text_color</code> - <?php esc_html_e( 'Hex color of text (Default: #007a78).', 'review-funnel' ); ?></li>
 							<li><code>font_size</code> - <?php esc_html_e( 'Font size value (Default: 20px).', 'review-funnel' ); ?></li>
 							<li><code>show_count</code> - <?php esc_html_e( 'Toggle reviews count visibility next to stars (true / false). Default is true.', 'review-funnel' ); ?></li>
-							<li><strong><?php esc_html_e( 'Example:', 'review-funnel' ); ?></strong> <code>[average_rating id="anna-dubaj" star_color="#ffbb00" font_size="16px" show_count="false"]</code></li>
+							<li><strong><?php esc_html_e( 'Example:', 'review-funnel' ); ?></strong> <code>[average_rating id="john-smith" star_color="#ffbb00" font_size="16px" show_count="false"]</code></li>
 						</ul>
 						<p><em>* <?php esc_html_e( 'Note: Just like the reviews list, if the therapist has 0 reviews, this badge will automatically return nothing to hide the section cleanly.', 'review-funnel' ); ?></em></p>
 					</div>
