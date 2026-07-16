@@ -349,3 +349,12 @@
 .wprf-gdpr-consent-group label a:hover {
     text-decoration: none;
 }
+
+/* Empty Reviews Message styling */
+.wprf-no-reviews-msg {
+    text-align: center;
+    color: #718096;
+    padding: 20px;
+    font-style: italic;
+    font-size: 15px;
+}

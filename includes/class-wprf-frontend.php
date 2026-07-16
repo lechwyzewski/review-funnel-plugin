@@ -54,7 +54,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 		 * Register frontend script and style assets.
 		 */
 		public function register_frontend_assets() {
-			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.0' );
+			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.1' );
 			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.2', true );
 			wp_register_script( 'wprf-turnstile', 'https://challenges.cloudflare.com/turnstile/v0/api.js', array(), null, true );
 
@@ -316,7 +316,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				
 				$msg = str_replace( '{profile}', $profile_name, $t_empty_reviews );
 				
-				return '<p class="wprf-no-reviews-msg" style="text-align: center; color: #718096; padding: 20px; font-style: italic; font-size: 15px;">' . esc_html( $msg ) . '</p>';
+				return '<p class="wprf-no-reviews-msg">' . esc_html( $msg ) . '</p>';
 			}
 
 			$slider_arrow_color = get_option( 'wprf_slider_arrow_color', '#007a78' );
