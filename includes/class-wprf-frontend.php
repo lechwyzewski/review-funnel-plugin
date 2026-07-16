@@ -252,6 +252,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 
 			$a = shortcode_atts( array(
 				'id'         => '',
+				'name'       => '',
 				'count'      => '6',
 				'columns'    => '3',
 				'layout'     => 'grid', // 'grid' or 'slider'
@@ -299,7 +300,23 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			}
 
 			if ( empty( $results ) ) {
-				return '';
+				$translations = get_option( 'wprf_translations', array() );
+				$t_empty_reviews = isset( $translations['empty_reviews_msg'] ) ? $translations['empty_reviews_msg'] : '{profile} does not have any reviews yet.';
+				
+				$profile_name = '';
+				if ( ! empty( $a['name'] ) ) {
+					$profile_name = sanitize_text_field( $a['name'] );
+				} elseif ( ! empty( $a['id'] ) ) {
+					$raw_ids = explode( ',', $a['id'] );
+					$first_id = trim( $raw_ids[0] );
+					$profile_name = ucwords( str_replace( '-', ' ', $first_id ) );
+				} else {
+					$profile_name = __( 'This profile', 'review-funnel' );
+				}
+				
+				$msg = str_replace( '{profile}', $profile_name, $t_empty_reviews );
+				
+				return '<p class="wprf-no-reviews-msg" style="text-align: center; color: #718096; padding: 20px; font-style: italic; font-size: 15px;">' . esc_html( $msg ) . '</p>';
 			}
 
 			$slider_arrow_color = get_option( 'wprf_slider_arrow_color', '#007a78' );

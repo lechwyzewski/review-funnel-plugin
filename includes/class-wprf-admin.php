@@ -290,6 +290,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$t_review_plural_5plus = isset( $translations['review_plural_5plus'] ) ? $translations['review_plural_5plus'] : 'reviews';
 			$t_read_more         = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
 			$t_read_less         = isset( $translations['read_less'] ) ? $translations['read_less'] : 'read less';
+			$t_empty_reviews     = isset( $translations['empty_reviews_msg'] ) ? $translations['empty_reviews_msg'] : '{profile} does not have any reviews yet.';
 			?>
 			<div class="wrap">
 				<h1><?php esc_html_e( 'Review Funnel & Google Maps Integration', 'review-funnel' ); ?></h1>
@@ -989,6 +990,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<th scope="row"><label for="wprf_t_read_less"><?php esc_html_e( 'Read Less Link Text', 'review-funnel' ); ?></label></th>
 									<td><input type="text" id="wprf_t_read_less" name="wprf_t[read_less]" value="<?php echo esc_attr( $t_read_less ); ?>" class="large-text"></td>
 								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_t_empty_reviews_msg"><?php esc_html_e( 'Empty Reviews List Message', 'review-funnel' ); ?></label></th>
+									<td>
+										<input type="text" id="wprf_t_empty_reviews_msg" name="wprf_t[empty_reviews_msg]" value="<?php echo esc_attr( $t_empty_reviews ); ?>" class="large-text"><br>
+										<small style="color: #666; font-style: italic;"><?php esc_html_e( 'Use {profile} to display the therapist name or profile ID.', 'review-funnel' ); ?></small>
+									</td>
+								</tr>
 							</table>
 						</div>
 
@@ -1033,6 +1041,11 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<td><strong>id</strong></td>
 									<td>Filter reviews by profile ID. Supports multiple comma-separated IDs (e.g. <code>id="john-smith, main"</code>). Leave empty to display all.</td>
 									<td><code>[review_list id="john-smith"]</code></td>
+								</tr>
+								<tr>
+									<td><strong>name</strong></td>
+									<td>Custom profile/therapist name. Used in the empty reviews message when the profile has no reviews yet.</td>
+									<td><code>[review_list id="john-smith" name="John Smith"]</code></td>
 								</tr>
 								<tr>
 									<td><strong>count</strong></td>
