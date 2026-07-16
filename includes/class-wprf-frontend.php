@@ -315,8 +315,21 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				}
 				
 				$msg = str_replace( '{profile}', $profile_name, $t_empty_reviews );
+
+				$no_reviews_color  = get_option( 'wprf_no_reviews_color', '#718096' );
+				$no_reviews_size   = get_option( 'wprf_no_reviews_size', '15px' );
+				$no_reviews_weight = get_option( 'wprf_no_reviews_weight', 'normal' );
+				$no_reviews_style  = get_option( 'wprf_no_reviews_style', 'italic' );
+
+				$inline_style = sprintf(
+					'--wprf-no-reviews-color: %s; --wprf-no-reviews-size: %s; --wprf-no-reviews-weight: %s; --wprf-no-reviews-style: %s;',
+					esc_attr( $no_reviews_color ),
+					esc_attr( $no_reviews_size ),
+					esc_attr( $no_reviews_weight ),
+					esc_attr( $no_reviews_style )
+				);
 				
-				return '<p class="wprf-no-reviews-msg">' . esc_html( $msg ) . '</p>';
+				return '<p class="wprf-no-reviews-msg" style="' . $inline_style . '">' . esc_html( $msg ) . '</p>';
 			}
 
 			$slider_arrow_color = get_option( 'wprf_slider_arrow_color', '#007a78' );

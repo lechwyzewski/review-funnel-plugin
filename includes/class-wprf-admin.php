@@ -224,6 +224,11 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$review_date_color  = get_option( 'wprf_review_date_color', '#718096' );
 			$review_date_size   = get_option( 'wprf_review_date_size', '11px' );
 
+			$no_reviews_color   = get_option( 'wprf_no_reviews_color', '#718096' );
+			$no_reviews_size    = get_option( 'wprf_no_reviews_size', '15px' );
+			$no_reviews_weight  = get_option( 'wprf_no_reviews_weight', 'normal' );
+			$no_reviews_style   = get_option( 'wprf_no_reviews_style', 'italic' );
+
 			$form_bg_color      = get_option( 'wprf_form_bg_color', '#fdfdfd' );
 			$form_border_style  = get_option( 'wprf_form_border_style', 'solid' );
 			$form_border_width  = get_option( 'wprf_form_border_width', '1px' );
@@ -871,6 +876,40 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 										<input type="text" id="wprf_review_date_size" name="wprf_review_date_size" value="<?php echo esc_attr( $review_date_size ); ?>" class="small-text" placeholder="11px">
 									</td>
 								</tr>
+								<tr>
+									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Empty Reviews Message Customization (PRO)', 'review-funnel' ); ?></h3></td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_no_reviews_color"><?php esc_html_e( 'Text Color', 'review-funnel' ); ?></label></th>
+									<td><input type="color" id="wprf_no_reviews_color" name="wprf_no_reviews_color" value="<?php echo esc_attr( $no_reviews_color ); ?>"></td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_no_reviews_size"><?php esc_html_e( 'Font Size', 'review-funnel' ); ?></label></th>
+									<td>
+										<input type="text" id="wprf_no_reviews_size" name="wprf_no_reviews_size" value="<?php echo esc_attr( $no_reviews_size ); ?>" class="small-text" placeholder="15px">
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_no_reviews_weight"><?php esc_html_e( 'Font Weight', 'review-funnel' ); ?></label></th>
+									<td>
+										<select id="wprf_no_reviews_weight" name="wprf_no_reviews_weight">
+											<option value="normal" <?php selected( $no_reviews_weight, 'normal' ); ?>>Normal</option>
+											<option value="bold" <?php selected( $no_reviews_weight, 'bold' ); ?>>Bold</option>
+											<option value="500" <?php selected( $no_reviews_weight, '500' ); ?>>Medium (500)</option>
+											<option value="600" <?php selected( $no_reviews_weight, '600' ); ?>>Semi-Bold (600)</option>
+											<option value="700" <?php selected( $no_reviews_weight, '700' ); ?>>Bold (700)</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_no_reviews_style"><?php esc_html_e( 'Font Style', 'review-funnel' ); ?></label></th>
+									<td>
+										<select id="wprf_no_reviews_style" name="wprf_no_reviews_style">
+											<option value="italic" <?php selected( $no_reviews_style, 'italic' ); ?>>Italic</option>
+											<option value="normal" <?php selected( $no_reviews_style, 'normal' ); ?>>Normal</option>
+										</select>
+									</td>
+								</tr>
 							</table>
 						</div>
 
@@ -1425,6 +1464,12 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				update_option( 'wprf_show_review_date', isset( $_POST['wprf_show_review_date'] ) ? 'yes' : 'no' );
 				update_option( 'wprf_review_date_color', sanitize_hex_color( $_POST['wprf_review_date_color'] ) );
 				update_option( 'wprf_review_date_size', sanitize_text_field( $_POST['wprf_review_date_size'] ) );
+
+				// Empty reviews styling settings save
+				update_option( 'wprf_no_reviews_color', sanitize_hex_color( $_POST['wprf_no_reviews_color'] ) );
+				update_option( 'wprf_no_reviews_size', sanitize_text_field( $_POST['wprf_no_reviews_size'] ) );
+				update_option( 'wprf_no_reviews_weight', sanitize_text_field( $_POST['wprf_no_reviews_weight'] ) );
+				update_option( 'wprf_no_reviews_style', sanitize_text_field( $_POST['wprf_no_reviews_style'] ) );
 
 				// MailerLite settings update
 				update_option( 'wprf_mailerlite_api_key', sanitize_text_field( $_POST['wprf_mailerlite_api_key'] ) );
