@@ -352,7 +352,7 @@
 
 /* Empty Reviews Message styling */
 .wprf-no-reviews-msg {
-    text-align: center;
+    text-align: center !important;
     color: var(--wprf-no-reviews-color, #718096);
     padding: 20px;
     font-style: var(--wprf-no-reviews-style, italic);

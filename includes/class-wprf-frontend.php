@@ -54,7 +54,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 		 * Register frontend script and style assets.
 		 */
 		public function register_frontend_assets() {
-			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.1' );
+			wp_register_style( 'wprf-frontend', plugins_url( 'assets/css/frontend.css', dirname( __FILE__ ) ), array(), '1.7.2' );
 			wp_register_script( 'wprf-frontend', plugins_url( 'assets/js/frontend.js', dirname( __FILE__ ) ), array(), '1.7.2', true );
 			wp_register_script( 'wprf-turnstile', 'https://challenges.cloudflare.com/turnstile/v0/api.js', array(), null, true );
 
