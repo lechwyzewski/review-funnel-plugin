@@ -541,7 +541,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<th scope="row"><label for="wprf_google_direct_url"><?php esc_html_e( 'Google Direct Review URL (Keyless Lejek)', 'review-funnel' ); ?></label></th>
 									<td>
 										<input type="text" id="wprf_google_direct_url" name="wprf_google_direct_url" value="<?php echo esc_attr( $direct_url ); ?>" class="regular-text">
-										<p class="description"><?php esc_html_e( 'If filled, satisfied users (4-5 stars) will be redirected directly to this link. Bypasses Google Places API key & Place ID requirements. Useful for simple, keyless setups.', 'review-funnel' ); ?></p>
+										<p class="description"><?php esc_html_e( 'If filled, satisfied users (4-5 stars) will be redirected directly to this link. Bypasses Google Places API key & Place ID requirements. Perfect for pasting your Google Maps sharing link (e.g. https://share.google/... or https://maps.app.goo.gl/...).', 'review-funnel' ); ?></p>
 									</td>
 								</tr>
 								<tr>
@@ -555,7 +555,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<th scope="row"><label for="wprf_google_place_id"><?php esc_html_e( 'Google Place ID', 'review-funnel' ); ?></label></th>
 									<td>
 										<input type="text" id="wprf_google_place_id" name="wprf_google_place_id" value="<?php echo esc_attr( $place_id ); ?>" class="regular-text">
-										<p class="description"><?php esc_html_e( 'Google Place ID used for Google API calls. You can also paste your Google Maps link (URL) here directly, and the plugin will automatically redirect clients to it.', 'review-funnel' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Google Place ID (e.g. ChIJ...) required for fetching/importing reviews via Google API. If no Direct Review URL is set above, the plugin will also use this ID to generate a redirect link. (Note: Do not paste a website link/URL here—use the field above for that).', 'review-funnel' ); ?></p>
 									</td>
 								</tr>
 							</table>
