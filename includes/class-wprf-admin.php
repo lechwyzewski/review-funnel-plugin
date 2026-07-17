@@ -555,7 +555,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<th scope="row"><label for="wprf_google_place_id"><?php esc_html_e( 'Google Place ID', 'review-funnel' ); ?></label></th>
 									<td>
 										<input type="text" id="wprf_google_place_id" name="wprf_google_place_id" value="<?php echo esc_attr( $place_id ); ?>" class="regular-text">
-										<p class="description"><?php esc_html_e( 'Google Place ID used for Google API calls, and as a fallback redirect URL if direct URL is not defined.', 'review-funnel' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Google Place ID used for Google API calls. You can also paste your Google Maps link (URL) here directly, and the plugin will automatically redirect clients to it.', 'review-funnel' ); ?></p>
 									</td>
 								</tr>
 							</table>

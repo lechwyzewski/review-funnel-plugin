@@ -813,7 +813,12 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			if ( ! empty( $direct_url ) ) {
 				$google_url = $direct_url;
 			} elseif ( ! empty( $place_id ) ) {
-				$google_url = 'https://search.google.com/local/writereview?placeid=' . esc_attr( $place_id );
+				$place_id_trimmed = trim( $place_id );
+				if ( filter_var( $place_id_trimmed, FILTER_VALIDATE_URL ) || strpos( $place_id_trimmed, 'http://' ) === 0 || strpos( $place_id_trimmed, 'https://' ) === 0 ) {
+					$google_url = $place_id_trimmed;
+				} else {
+					$google_url = 'https://search.google.com/local/writereview?placeid=' . esc_attr( $place_id_trimmed );
+				}
 			}
 
 			if ( $rating >= 4 && ! empty( $google_url ) ) {
