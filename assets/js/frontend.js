@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 responseBox.style.color = '#22543d';
                 responseBox.innerHTML = `
                     <div style="text-align: center; padding: 5px 0;">
-                        <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #1c5233;">${res.data.message}</p>
+                        <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: bold; color: #1c5233; white-space: pre-line; line-height: 1.5;">${res.data.message}</p>
                         <p style="font-size: 12px; margin: 0 0 15px 0; color: #2f855a; font-style: italic;">${wprf_frontend_vars.t_clipboard_msg}</p>
                         <div class="wprf-button-group">
                             <button type="button" id="wprf-copy-btn" class="wprf-copy-btn" style="background-color: ${wprf_frontend_vars.btn_color}; color: ${wprf_frontend_vars.text_color};">
