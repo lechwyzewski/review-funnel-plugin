@@ -1133,7 +1133,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						</table>
 
 						<p><strong><?php esc_html_e( 'Comprehensive Slider Example:', 'review-funnel' ); ?></strong><br>
-						<code>[review_list id="john-smith, main" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true" show_date="true" char_limit="150"]</code></p>
+						<code>[review_list id="john-smith, main" name="John Smith" layout="slider" columns="3" count="100" autoplay="4500" arrows="true" dots="true" show_date="true" char_limit="150"]</code></p>
 						
 						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
 
