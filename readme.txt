@@ -1,11 +1,12 @@
-=== Review Funnel Plugin ===
-Contributors: ai-collaborator
+=== Complete Review Funnel – Google Reviews & Reputation Manager ===
+Contributors: complete-review-funnel
 Tags: reviews, google maps, review funnel, feedback, testimonial
 Requires at least: 5.0
-Tested up to: 6.5
+Tested up to: 6.7
 Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
 
 A universal review funnel with star ratings, Google API integration, automated clipboard copying, and RODO/GDPR compliance.
 

@@ -1,9 +1,11 @@
 <?php
 /**
- * Plugin Name: Review Funnel Plugin
+ * Plugin Name: Complete Review Funnel – Google Reviews & Reputation Manager
  * Description: Universal review funnel with star ratings, Google API integration, and modular admin tabs.
- * Version: 1.7.0
- * Author: AI Collaborator
+ * Version:     1.7.0
+ * Author:      Complete Review Funnel
+ * License:     GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: review-funnel
  * Domain Path: /languages
  */

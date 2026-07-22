@@ -47,6 +47,9 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			add_action( 'wp_ajax_wprf_submit_funnel', array( $this, 'handle_funnel_submission' ) );
 			add_action( 'wp_ajax_nopriv_wprf_submit_funnel', array( $this, 'handle_funnel_submission' ) );
 
+			add_action( 'wp_ajax_wprf_load_more_reviews', array( $this, 'handle_load_more_reviews' ) );
+			add_action( 'wp_ajax_nopriv_wprf_load_more_reviews', array( $this, 'handle_load_more_reviews' ) );
+
 			add_action( 'wp_enqueue_scripts', array( $this, 'register_frontend_assets' ) );
 		}
 
@@ -250,17 +253,23 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			wp_enqueue_style( 'wprf-frontend' );
 			wp_enqueue_script( 'wprf-frontend' );
 
+			$default_layout = get_option( 'wprf_default_layout', 'grid' );
+
 			$a = shortcode_atts( array(
 				'id'         => '',
 				'name'       => '',
 				'count'      => '6',
 				'columns'    => '3',
-				'layout'     => 'grid', // 'grid' or 'slider'
+				'layout'     => $default_layout, // 'grid', 'slider', or 'masonry'
 				'autoplay'   => '0',    // milliseconds, e.g. 5000, 0 = disabled
 				'arrows'     => 'true', // 'true' or 'false'
 				'dots'       => 'true', // 'true' or 'false'
 				'show_date'  => '',
 				'char_limit' => '180',
+				'theme'      => 'default', // 'default' or 'glass'
+				'filters'    => get_option( 'wprf_enable_filters', 'true' ),   // 'true' or 'false'
+				'load_more'  => 'false',   // 'true' or 'false'
+				'per_page'   => '6',
 			), $atts );
 
 			$count      = absint( $a['count'] );
@@ -270,6 +279,9 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			$arrows     = sanitize_text_field( $a['arrows'] );
 			$dots       = sanitize_text_field( $a['dots'] );
 			$char_limit = isset( $a['char_limit'] ) ? intval( $a['char_limit'] ) : 180;
+			$per_page   = absint( $a['per_page'] );
+
+			$db_limit   = ( 'true' === $a['load_more'] ) ? $per_page : $count;
 
 			if ( $columns < 1 || $columns > 4 ) {
 				$columns = 3;
@@ -286,7 +298,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 					$query_args[] = $id;
 				}
 				$where_clause = implode( ' OR ', $clauses );
-				$query_args[] = $count;
+				$query_args[] = $db_limit;
 
 				$query = $wpdb->prepare(
 					"SELECT * FROM {$this->table_name} WHERE status='approved' AND ($where_clause) ORDER BY time DESC LIMIT %d",
@@ -295,7 +307,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				$results = $wpdb->get_results( $query );
 			} else {
 				$results = $wpdb->get_results(
-					$wpdb->prepare( "SELECT * FROM {$this->table_name} WHERE status='approved' ORDER BY time DESC LIMIT %d", $count )
+					$wpdb->prepare( "SELECT * FROM {$this->table_name} WHERE status='approved' ORDER BY time DESC LIMIT %d", $db_limit )
 				);
 			}
 
@@ -365,9 +377,28 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			// Output SEO JSON-LD block
 			echo $this->generate_json_ld( $a['id'], $stats, $results );
 			?>
-			<?php if ( 'slider' === $layout ) : ?>
+			<?php
+			$unique_id = uniqid();
+			$container_id = 'wprf-container-' . $unique_id;
+
+			// Output frontend filters if enabled (only for grid/masonry)
+			if ( 'true' === $a['filters'] && 'slider' !== $layout ) {
+				$t_filter_all = isset( $translations['filter_all'] ) ? $translations['filter_all'] : 'All';
+				?>
+				<div class="wprf-filters-wrapper" data-target="<?php echo esc_attr( $container_id ); ?>">
+					<button type="button" class="wprf-filter-btn active" data-filter="all"><?php echo esc_html( $t_filter_all ); ?></button>
+					<button type="button" class="wprf-filter-btn" data-filter="5">5 ★</button>
+					<button type="button" class="wprf-filter-btn" data-filter="4">4 ★</button>
+					<button type="button" class="wprf-filter-btn" data-filter="3">3 ★</button>
+					<button type="button" class="wprf-filter-btn" data-filter="2">2 ★</button>
+					<button type="button" class="wprf-filter-btn" data-filter="1">1 ★</button>
+				</div>
+				<?php
+			}
+
+			if ( 'slider' === $layout ) : ?>
 				<div class="wprf-slider-container wprf-slider-cols-<?php echo esc_attr( $columns ); ?>" 
-				     id="wprf-slider-<?php echo esc_attr( uniqid() ); ?>" 
+				     id="wprf-slider-<?php echo esc_attr( $unique_id ); ?>" 
 				     data-autoplay="<?php echo esc_attr( $autoplay ); ?>" 
 				     data-arrows="<?php echo esc_attr( $arrows ); ?>" 
 				     data-dots="<?php echo esc_attr( $dots ); ?>"
@@ -381,33 +412,8 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 								</p>
 							<?php else : ?>
 								<?php foreach ( $results as $res ) : ?>
-									<div class="wprf-slider-slide wprf-review-card">
-										<div class="wprf-card-header">
-											<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
-											<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
-										</div>
-										<p class="wprf-text">
-											<?php
-											$text = $res->review_text;
-											if ( $char_limit > 0 && mb_strlen( $text, 'UTF-8' ) > $char_limit ) {
-												$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
-												$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
-												?>
-												<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span><span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
-												<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
-												<?php
-											} else {
-												?>
-												"<?php echo esc_html( $text ); ?>"
-												<?php
-											}
-											?>
-										</p>
-										<?php if ( 'yes' === $show_date ) : ?>
-											<small class="wprf-date" style="color: <?php echo esc_attr( $date_color ); ?>; font-size: <?php echo esc_attr( $date_size ); ?>; display: block; margin-top: 8px;">
-												<?php echo esc_html( date( 'd.m.Y', strtotime( $res->time ) ) ); ?>
-											</small>
-										<?php endif; ?>
+									<div class="wprf-slider-slide">
+										<?php echo $this->render_review_card_html( $res, $char_limit, $show_date, $date_color, $date_size, $t_read_more, $slider_arrow_color, $a['theme'] ); ?>
 									</div>
 								<?php endforeach; ?>
 							<?php endif; ?>
@@ -432,45 +438,36 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 						<div class="wprf-slider-dots"></div>
 					<?php endif; ?>
 				</div>
-			<?php else : ?>
-				<div class="wprf-reviews-grid wprf-cols-<?php echo esc_attr( $columns ); ?>">
+			<?php else : 
+				$grid_class = ( 'masonry' === $layout ) ? 'wprf-layout-masonry wprf-cols-' . esc_attr( $columns ) : 'wprf-reviews-grid wprf-cols-' . esc_attr( $columns );
+				?>
+				<div class="<?php echo esc_attr( $grid_class ); ?>" id="<?php echo esc_attr( $container_id ); ?>">
 					<?php if ( empty( $results ) ) : ?>
 						<p style="grid-column: 1 / -1; text-align: center; color: #718096;">
 							<?php esc_html_e( 'No reviews verified yet for this profile.', 'review-funnel' ); ?>
 						</p>
 					<?php else : ?>
 						<?php foreach ( $results as $res ) : ?>
-							<div class="wprf-review-card">
-								<div class="wprf-card-header">
-									<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
-									<span class="wprf-stars"><?php echo esc_html( str_repeat( '★', $res->rating ) ); ?></span>
-								</div>
-								<p class="wprf-text">
-									<?php
-									$text = $res->review_text;
-									if ( $char_limit > 0 && mb_strlen( $text, 'UTF-8' ) > $char_limit ) {
-										$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
-										$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
-										?>
-										<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span><span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
-										<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
-										<?php
-									} else {
-										?>
-										"<?php echo esc_html( $text ); ?>"
-										<?php
-									}
-									?>
-								</p>
-								<?php if ( 'yes' === $show_date ) : ?>
-									<small class="wprf-date" style="color: <?php echo esc_attr( $date_color ); ?>; font-size: <?php echo esc_attr( $date_size ); ?>; display: block; margin-top: 8px;">
-										<?php echo esc_html( date( 'd.m.Y', strtotime( $res->time ) ) ); ?>
-									</small>
-								<?php endif; ?>
-							</div>
+							<?php echo $this->render_review_card_html( $res, $char_limit, $show_date, $date_color, $date_size, $t_read_more, $slider_arrow_color, $a['theme'] ); ?>
 						<?php endforeach; ?>
 					<?php endif; ?>
 				</div>
+
+				<?php if ( 'true' === $a['load_more'] && count( $results ) >= $per_page ) : ?>
+					<div class="wprf-load-more-wrapper">
+						<button type="button" class="wprf-load-more-btn" 
+						        data-profile-id="<?php echo esc_attr( $a['id'] ); ?>" 
+						        data-columns="<?php echo esc_attr( $columns ); ?>" 
+						        data-char-limit="<?php echo esc_attr( $char_limit ); ?>" 
+						        data-show-date="<?php echo esc_attr( $show_date ); ?>" 
+						        data-theme="<?php echo esc_attr( $a['theme'] ); ?>" 
+						        data-offset="<?php echo esc_attr( $per_page ); ?>" 
+						        data-per-page="<?php echo esc_attr( $per_page ); ?>" 
+						        data-target="<?php echo esc_attr( $container_id ); ?>">
+							<?php esc_html_e( 'Load More Reviews', 'review-funnel' ); ?>
+						</button>
+					</div>
+				<?php endif; ?>
 			<?php endif; ?>
 			<?php
 			return ob_get_clean();
@@ -795,7 +792,10 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 
 					$headers = array( 'Content-Type: text/plain; charset=UTF-8' );
 
-					wp_mail( $emails, $subject, $body, $headers );
+					$sent = wp_mail( $emails, $subject, $body, $headers );
+					if ( class_exists( 'WPRF_Admin' ) ) {
+						WPRF_Admin::log_mail_event( implode( ', ', $emails ), $subject, $sent );
+					}
 				}
 			}
 
@@ -824,7 +824,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 			if ( $rating >= 4 && ! empty( $google_url ) ) {
 				wp_send_json_success( array(
 					'action'     => 'google_redirect',
-					'message'    => $google_msg,
+					'message'    => nl2br( esc_html( $google_msg ) ),
 					'google_url' => $google_url,
 					'text'       => $text
 				) );
@@ -832,7 +832,7 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 				// Jeśli brak place_id i direct_url, przesyłamy info diagnostyczne dla JS console.log
 				wp_send_json_success( array(
 					'action'         => 'standard_success',
-					'message'        => $success_msg,
+					'message'        => nl2br( esc_html( $success_msg ) ),
 					'debug_place_id' => ( empty( $place_id ) && empty( $direct_url ) ) ? 'missing_or_empty' : 'populated'
 				) );
 			}
@@ -930,6 +930,184 @@ if ( ! class_exists( 'WPRF_Frontend' ) ) {
 					wp_remote_post( $url, $args );
 				}
 			}
+		}
+
+		/**
+		 * Render initials or image avatar for the reviewer.
+		 *
+		 * @param string $name
+		 * @param string $avatar_url
+		 * @return string
+		 */
+		public function get_reviewer_avatar( $name, $avatar_url = '' ) {
+			if ( ! empty( $avatar_url ) ) {
+				return '<img src="' . esc_url( $avatar_url ) . '" class="wprf-avatar" alt="' . esc_attr( $name ) . '">';
+			}
+
+			$trimmed_name = trim( $name );
+			$is_anonymous = empty( $trimmed_name ) || '?' === $trimmed_name || 'Anonim' === $trimmed_name;
+
+			// Custom default avatar icon option from admin settings
+			$custom_avatar_url = get_option( 'wprf_custom_avatar_url', '' );
+			if ( $is_anonymous && ! empty( $custom_avatar_url ) ) {
+				return '<img src="' . esc_url( $custom_avatar_url ) . '" class="wprf-avatar" alt="Anonymous">';
+			}
+
+			if ( $is_anonymous ) {
+				// Soft neutral gray background with clean user silhouette SVG
+				return '<span class="wprf-avatar-initials" style="background-color: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; width: 42px; height: 42px; border-radius: 50%; box-sizing: border-box;">' . 
+				       '<svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' . 
+				       '</span>';
+			}
+
+			// Parse initials safely
+			$words = array_values( array_filter( explode( ' ', $trimmed_name ) ) );
+			$initials = '';
+			if ( count( $words ) >= 2 ) {
+				$initials = mb_substr( $words[0], 0, 1, 'UTF-8' ) . mb_substr( $words[ count( $words ) - 1 ], 0, 1, 'UTF-8' );
+			} elseif ( count( $words ) === 1 ) {
+				$word = $words[0];
+				if ( '?' === $word ) {
+					return '<span class="wprf-avatar-initials" style="background-color: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; width: 42px; height: 42px; border-radius: 50%; box-sizing: border-box;"><svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>';
+				}
+				$initials = mb_substr( $word, 0, 1, 'UTF-8' );
+			} else {
+				$initials = 'A';
+			}
+
+			$initials = mb_strtoupper( $initials, 'UTF-8' );
+
+			// Premium color palette for reviewer initials
+			$colors = array(
+				'#007a78', '#0284c7', '#2563eb', '#7c3aed', '#c026d3', 
+				'#db2777', '#059669', '#d97706', '#475569', '#0d9488'
+			);
+			$color_index = abs( crc32( $trimmed_name ) ) % count( $colors );
+			$bg_color = $colors[ $color_index ];
+
+			return '<span class="wprf-avatar-initials" style="background-color: ' . esc_attr( $bg_color ) . '; color: #ffffff; font-weight: 600;">' . esc_html( $initials ) . '</span>';
+		}
+
+		/**
+		 * Render a single review card HTML.
+		 *
+		 * @return string
+		 */
+		private function render_review_card_html( $res, $char_limit, $show_date, $date_color, $date_size, $t_read_more, $slider_arrow_color, $theme ) {
+			$card_class = 'wprf-review-card';
+			if ( 'glass' === $theme ) {
+				$card_class .= ' wprf-theme-glass';
+			}
+
+			$rating_val = intval( $res->rating );
+			$stars_html = esc_html( str_repeat( '★', $rating_val ) );
+
+			$avatar_html = $this->get_reviewer_avatar( $res->author_name, isset( $res->avatar_url ) ? $res->avatar_url : '' );
+
+			ob_start();
+			?>
+			<div class="<?php echo esc_attr( $card_class ); ?>" data-rating="<?php echo $rating_val; ?>">
+				<div class="wprf-card-header">
+					<div class="wprf-avatar-wrapper">
+						<?php echo $avatar_html; ?>
+						<?php if ( ! empty( $res->author_name ) && '?' !== trim( $res->author_name ) && 'anonymous' !== strtolower( trim( $res->author_name ) ) && 'anonim' !== strtolower( trim( $res->author_name ) ) ) : ?>
+							<div>
+								<strong class="wprf-author"><?php echo esc_html( $res->author_name ); ?></strong>
+								<?php if ( ! empty( $res->google_review_id ) ) : ?>
+									<div class="wprf-verified-badge">
+										<svg viewBox="0 0 24 24"><path d="M12.24 10.285V13.4h6.887C18.2 15.614 15.645 18 12.24 18c-3.86 0-7-3.14-7-7s3.14-7 7-7c1.7 0 3.25.61 4.47 1.617L19.1 3.238C17.26 1.528 14.87 1 12.24 1c-5.523 0-10 4.477-10 10s4.477 10 10 10c5.782 0 9.61-4.064 9.61-9.782 0-.66-.08-1.258-.2-1.933H12.24z"/></svg>
+										<?php esc_html_e( 'Verified Review', 'review-funnel' ); ?>
+									</div>
+								<?php endif; ?>
+							</div>
+						<?php endif; ?>
+					</div>
+					<span class="wprf-stars"><?php echo $stars_html; ?></span>
+				</div>
+				<p class="wprf-text">
+					<?php
+					$text = $res->review_text;
+					if ( $char_limit > 0 && mb_strlen( $text, 'UTF-8' ) > $char_limit ) {
+						$visible_text = mb_substr( $text, 0, $char_limit, 'UTF-8' );
+						$hidden_text  = mb_substr( $text, $char_limit, null, 'UTF-8' );
+						?>
+						<span class="wprf-text-teaser">"<?php echo esc_html( $visible_text ); ?></span><span class="wprf-text-more" style="display: none;"><?php echo esc_html( $hidden_text ); ?></span>"
+						<span class="wprf-readmore-toggle" style="color: <?php echo esc_attr( $slider_arrow_color ); ?>; font-weight: 600; cursor: pointer; margin-left: 5px; display: inline-block; text-decoration: underline; font-size: 12px;"><?php echo esc_html( $t_read_more ); ?></span>
+						<?php
+					} else {
+						?>
+						"<?php echo esc_html( $text ); ?>"
+						<?php
+					}
+					?>
+				</p>
+				<?php if ( 'yes' === $show_date ) : ?>
+					<small class="wprf-date" style="color: <?php echo esc_attr( $date_color ); ?>; font-size: <?php echo esc_attr( $date_size ); ?>; display: block; margin-top: 8px;">
+						<?php echo esc_html( date( 'd.m.Y', strtotime( $res->time ) ) ); ?>
+					</small>
+				<?php endif; ?>
+			</div>
+			<?php
+			return ob_get_clean();
+		}
+
+		/**
+		 * Handle AJAX request for load more reviews.
+		 */
+		public function handle_load_more_reviews() {
+			global $wpdb;
+
+			$profile_id = isset( $_POST['profile_id'] ) ? sanitize_text_field( $_POST['profile_id'] ) : '';
+			$char_limit = isset( $_POST['char_limit'] ) ? intval( $_POST['char_limit'] ) : 180;
+			$show_date  = isset( $_POST['show_date'] ) ? sanitize_text_field( $_POST['show_date'] ) : 'yes';
+			$theme      = isset( $_POST['theme'] ) ? sanitize_text_field( $_POST['theme'] ) : 'default';
+			$offset     = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 0;
+			$per_page   = isset( $_POST['per_page'] ) ? absint( $_POST['per_page'] ) : 6;
+
+			// Fetch database entries
+			if ( ! empty( $profile_id ) ) {
+				$raw_ids      = explode( ',', $profile_id );
+				$clean_ids    = array_map( 'sanitize_text_field', array_map( 'trim', $raw_ids ) );
+				
+				$clauses = array();
+				$query_args = array();
+				foreach ( $clean_ids as $id ) {
+					$clauses[]    = "FIND_IN_SET(%s, REPLACE(profile_id, ' ', ''))";
+					$query_args[] = $id;
+				}
+				$where_clause = implode( ' OR ', $clauses );
+				$query_args[] = $offset;
+				$query_args[] = $per_page;
+
+				$query = $wpdb->prepare(
+					"SELECT * FROM {$this->table_name} WHERE status='approved' AND ($where_clause) ORDER BY time DESC LIMIT %d, %d",
+					$query_args
+				);
+				$results = $wpdb->get_results( $query );
+			} else {
+				$results = $wpdb->get_results(
+					$wpdb->prepare( "SELECT * FROM {$this->table_name} WHERE status='approved' ORDER BY time DESC LIMIT %d, %d", $offset, $per_page )
+				);
+			}
+
+			if ( empty( $results ) ) {
+				wp_send_json_success( array( 'html' => '', 'has_more' => false ) );
+			}
+
+			$slider_arrow_color = get_option( 'wprf_slider_arrow_color', '#007a78' );
+			$date_color         = get_option( 'wprf_review_date_color', '#718096' );
+			$date_size          = get_option( 'wprf_review_date_size', '11px' );
+			$translations       = get_option( 'wprf_translations', array() );
+			$t_read_more        = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
+
+			$html = '';
+			foreach ( $results as $res ) {
+				$html .= $this->render_review_card_html( $res, $char_limit, $show_date, $date_color, $date_size, $t_read_more, $slider_arrow_color, $theme );
+			}
+
+			$has_more = count( $results ) === $per_page;
+
+			wp_send_json_success( array( 'html' => $html, 'has_more' => $has_more ) );
 		}
 	}
 }

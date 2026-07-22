@@ -192,11 +192,11 @@
     font-size: 11px;
     text-align: left;
 }
-@media (max-width: 980px) {
+@media (max-width: 768px) {
     .wprf-cols-3, 
     .wprf-cols-4 { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 600px) {
+@media (max-width: 480px) {
     .wprf-reviews-grid, 
     .wprf-cols-2, 
     .wprf-cols-3, 
@@ -358,4 +358,203 @@
     font-style: var(--wprf-no-reviews-style, italic);
     font-size: var(--wprf-no-reviews-size, 15px);
     font-weight: var(--wprf-no-reviews-weight, normal);
+}
+
+/* Pro Layout & Styling Enhancements */
+
+/* 1. Masonry Grid Layout (Left-to-Right Horizontal Order) */
+.wprf-layout-masonry {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 15px;
+}
+.wprf-layout-masonry.wprf-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.wprf-layout-masonry.wprf-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.wprf-layout-masonry.wprf-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.wprf-layout-masonry.wprf-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.wprf-layout-masonry .wprf-review-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+@media (max-width: 980px) {
+    .wprf-layout-masonry,
+    .wprf-layout-masonry.wprf-cols-3,
+    .wprf-layout-masonry.wprf-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .wprf-layout-masonry,
+    .wprf-layout-masonry.wprf-cols-2,
+    .wprf-layout-masonry.wprf-cols-3,
+    .wprf-layout-masonry.wprf-cols-4 {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* 2. Glassmorphism Theme */
+.wprf-theme-glass {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05) !important;
+}
+.wprf-theme-glass:hover {
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 3. Avatars & Initials */
+.wprf-avatar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.wprf-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.wprf-avatar-initials {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+/* 4. Google Verification Badge */
+.wprf-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #4285f4;
+    background: rgba(66, 133, 244, 0.08);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 10px;
+    align-self: flex-start;
+}
+.wprf-verified-badge svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+/* 5. Frontend Filters */
+.wprf-filters-wrapper {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    margin-top: 10px;
+}
+.wprf-filter-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.wprf-filter-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+.wprf-filter-btn.active {
+    background: var(--wprf-btn-color, #007a78);
+    color: var(--wprf-btn-text-color, #ffffff);
+    border-color: var(--wprf-btn-color, #007a78);
+    box-shadow: 0 4px 10px rgba(0, 122, 120, 0.2);
+}
+
+/* 6. Load More Pagination & Shimmer Loaders */
+.wprf-load-more-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    width: 100%;
+}
+.wprf-load-more-btn {
+    background: var(--wprf-btn-color, #007a78);
+    color: var(--wprf-btn-text-color, #ffffff);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 122, 120, 0.15);
+    outline: none;
+}
+.wprf-load-more-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.wprf-load-more-btn:active {
+    transform: translateY(0);
+}
+
+/* Skeleton Loading Animation */
+.wprf-skeleton-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.wprf-skeleton-line {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: wprf-shimmer 1.5s infinite linear;
+    border-radius: 4px;
+}
+.wprf-skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.wprf-skeleton-text {
+    height: 14px;
+    width: 100%;
+}
+.wprf-skeleton-text.short {
+    width: 60%;
+}
+.wprf-skeleton-meta {
+    height: 12px;
+    width: 30%;
+}
+@keyframes wprf-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }

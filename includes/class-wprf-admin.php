@@ -220,6 +220,7 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$disable_ip_rate_limit = get_option( 'wprf_disable_ip_rate_limit', 'no' );
 
 			// Customization options (PRO)
+			$enable_filters     = get_option( 'wprf_enable_filters', 'true' );
 			$show_review_date   = get_option( 'wprf_show_review_date', 'yes' );
 			$review_date_color  = get_option( 'wprf_review_date_color', '#718096' );
 			$review_date_size   = get_option( 'wprf_review_date_size', '11px' );
@@ -273,8 +274,14 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			}
 			sort( $unique_profile_ids );
 
+			$custom_avatar_url = get_option( 'wprf_custom_avatar_url', '' );
+			$default_layout    = get_option( 'wprf_default_layout', 'grid' );
+
 			// --- MODIFICATION: FETCH TRANSLATIONS OPTIONS ---
 			$translations = get_option( 'wprf_translations', array() );
+			if ( ! is_array( $translations ) ) {
+				$translations = array();
+			}
 			$t_rating_title  = isset( $translations['rating_title'] ) ? $translations['rating_title'] : 'How do you rate your experience with us?';
 			$t_input_name    = isset( $translations['input_name'] ) ? $translations['input_name'] : 'Your Name / Nickname';
 			$t_input_name_p  = isset( $translations['input_name_placeholder'] ) ? $translations['input_name_placeholder'] : 'e.g. John Doe';
@@ -296,16 +303,140 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			$t_read_more         = isset( $translations['read_more'] ) ? $translations['read_more'] : 'read more';
 			$t_read_less         = isset( $translations['read_less'] ) ? $translations['read_less'] : 'read less';
 			$t_empty_reviews     = isset( $translations['empty_reviews_msg'] ) ? $translations['empty_reviews_msg'] : '{profile} does not have any reviews yet.';
+			$t_filter_all        = isset( $translations['filter_all'] ) ? $translations['filter_all'] : 'All';
+
+			wp_enqueue_media();
 			?>
 			<div class="wrap">
+				<style>
+				/* Kontener dla nowej struktury */
+				.wprf-appearance-container {
+					display: flex;
+					gap: 24px;
+					margin-top: 20px;
+					align-items: flex-start;
+				}
+
+				/* Sidebar z menu */
+				.wprf-appearance-sidebar {
+					width: 240px;
+					flex-shrink: 0;
+					background: #ffffff;
+					border: 1px solid #ccd0d4;
+					border-radius: 8px;
+					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+					overflow: hidden;
+				}
+
+				.wprf-appearance-menu {
+					list-style: none !important;
+					margin: 0 !important;
+					padding: 0 !important;
+				}
+
+				.wprf-appearance-menu-item {
+					margin: 0 !important;
+					border-bottom: 1px solid #edf2f7;
+				}
+
+				.wprf-appearance-menu-item:last-child {
+					border-bottom: none;
+				}
+
+				.wprf-appearance-menu-item a {
+					display: flex;
+					align-items: center;
+					gap: 12px;
+					padding: 15px 20px;
+					color: #4a5568;
+					text-decoration: none;
+					font-weight: 500;
+					font-size: 13px;
+					border-left: 4px solid transparent;
+					transition: all 0.2s ease-in-out;
+					box-shadow: none !important;
+				}
+
+				/* Stany interaktywne menu */
+				.wprf-appearance-menu-item a:hover {
+					background: #f8fafc;
+					color: #2271b1;
+				}
+
+				.wprf-appearance-menu-item.active a {
+					background: #f0f6fa;
+					color: #2271b1;
+					border-left-color: #2271b1;
+					font-weight: 600;
+				}
+
+				.wprf-appearance-menu-item a .dashicons {
+					color: #718096;
+					font-size: 18px;
+					width: 18px;
+					height: 18px;
+					transition: color 0.2s ease-in-out;
+				}
+
+				.wprf-appearance-menu-item.active a .dashicons,
+				.wprf-appearance-menu-item a:hover .dashicons {
+					color: #2271b1;
+				}
+
+				/* Kolumna z zawartością */
+				.wprf-appearance-content {
+					flex-grow: 1;
+					min-width: 0;
+				}
+
+				.wprf-appearance-section-pane {
+					display: none;
+					animation: wprfFadeIn 0.25s ease-in-out;
+				}
+
+				/* Animacja przejścia */
+				@keyframes wprfFadeIn {
+					from {
+						opacity: 0;
+						transform: translateY(4px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+
+				/* Stylowanie kart ustawień po prawej */
+				.wprf-appearance-content .card {
+					background: #ffffff;
+					border: 1px solid #ccd0d4;
+					border-radius: 8px;
+					padding: 24px;
+					margin-bottom: 20px;
+					box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+					max-width: 100% !important;
+					box-sizing: border-box;
+				}
+
+				.wprf-appearance-content .card h2 {
+					margin-top: 0;
+					border-bottom: 1px solid #edf2f7;
+					padding-bottom: 14px;
+					margin-bottom: 20px;
+					font-size: 18px;
+					font-weight: 600;
+					color: #1d2327;
+				}
+				</style>
 				<h1><?php esc_html_e( 'Review Funnel & Google Maps Integration', 'review-funnel' ); ?></h1>
 				
 				<!-- WP NATIVE TABS NAVIGATION -->
 				<h2 class="nav-tab-wrapper">
-					<a href="#tab-reviews" class="nav-tab nav-tab-active" data-tab="tab-reviews"><?php esc_html_e( 'Reviews Management', 'review-funnel' ); ?></a>
-					<a href="#tab-settings" class="nav-tab" data-tab="tab-settings"><?php esc_html_e( 'Settings & Customization', 'review-funnel' ); ?></a>
-					<a href="#tab-translations" class="nav-tab" data-tab="tab-translations"><?php esc_html_e( 'Translations', 'review-funnel' ); ?></a>
-					<a href="#tab-shortcodes" class="nav-tab" data-tab="tab-shortcodes"><?php esc_html_e( 'Shortcodes Guide', 'review-funnel' ); ?></a>
+					<a href="#tab-reviews" class="nav-tab nav-tab-active" data-tab="tab-reviews" onclick="wprfSwitchTab('tab-reviews'); return false;"><?php esc_html_e( 'Reviews Management', 'review-funnel' ); ?></a>
+					<a href="#tab-settings" class="nav-tab" data-tab="tab-settings" onclick="wprfSwitchTab('tab-settings'); return false;"><?php esc_html_e( 'Settings & Customization', 'review-funnel' ); ?></a>
+					<a href="#tab-translations" class="nav-tab" data-tab="tab-translations" onclick="wprfSwitchTab('tab-translations'); return false;"><?php esc_html_e( 'Translations', 'review-funnel' ); ?></a>
+					<a href="#tab-shortcodes" class="nav-tab" data-tab="tab-shortcodes" onclick="wprfSwitchTab('tab-shortcodes'); return false;"><?php esc_html_e( 'Shortcodes Guide', 'review-funnel' ); ?></a>
+					<a href="#tab-support" class="nav-tab" data-tab="tab-support" onclick="wprfSwitchTab('tab-support'); return false;"><?php esc_html_e( 'Support & Help', 'review-funnel' ); ?></a>
 				</h2>
 
 				<!-- TAB 1: REVIEWS MANAGEMENT -->
@@ -528,10 +659,42 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 					<?php endif; ?>
 				</div>
 
-				<!-- TAB 2: SETTINGS & CUSTOMIZATION -->
+				<!-- TAB 2: SETTINGS & CUSTOMIZATION (Z DRUGIM POZIOMEM NAWIGACJI) -->
 				<div id="tab-settings" class="tab-content-section" style="margin-top: 20px; display: none;">
+					
+					<!-- SECOND-LEVEL SUB-MENU BAR (Menu drugiego poziomu) -->
+					<div class="wprf-subnav-bar" style="margin-bottom: 25px; background: #ffffff; padding: 12px 16px; border-radius: 8px; border: 1px solid #ccd0d4; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-wrap: wrap; gap: 8px;">
+						<button type="button" class="button wprf-subnav-btn button-primary" data-subtab="subtab-google" onclick="wprfSwitchSubtab('subtab-google'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-admin-links" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'Google API & Redirects', 'review-funnel' ); ?>
+						</button>
+						<button type="button" class="button wprf-subnav-btn button-secondary" data-subtab="subtab-privacy" onclick="wprfSwitchSubtab('subtab-privacy'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-shield" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'GDPR & Privacy', 'review-funnel' ); ?>
+						</button>
+						<button type="button" class="button wprf-subnav-btn button-secondary" data-subtab="subtab-email" onclick="wprfSwitchSubtab('subtab-email'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-email-alt" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'Email Notifications', 'review-funnel' ); ?>
+						</button>
+						<button type="button" class="button wprf-subnav-btn button-secondary" data-subtab="subtab-spam" onclick="wprfSwitchSubtab('subtab-spam'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-lock" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'Spam Protection', 'review-funnel' ); ?>
+						</button>
+						<button type="button" class="button wprf-subnav-btn button-secondary" data-subtab="subtab-mailerlite" onclick="wprfSwitchSubtab('subtab-mailerlite'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-groups" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'MailerLite Sync', 'review-funnel' ); ?>
+						</button>
+						<button type="button" class="button wprf-subnav-btn button-secondary" data-subtab="subtab-design" onclick="wprfSwitchSubtab('subtab-design'); return false;" style="font-weight: 600;">
+							<span class="dashicons dashicons-art" style="vertical-align: middle; font-size: 16px; width: 16px; height: 16px; margin-right: 4px;"></span>
+							<?php esc_html_e( 'Appearance & Layout PRO', 'review-funnel' ); ?>
+						</button>
+					</div>
+
 					<form method="post" action="">
 						<?php wp_nonce_field( 'wprf_settings_save_action', 'wprf_settings_save_nonce' ); ?>
+						
+						<!-- SUBTAB 1: GOOGLE API & REDIRECTS -->
+						<div id="subtab-google" class="wprf-subtab-section">
 						
 						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
 							<h2><span class="dashicons dashicons-admin-links" style="vertical-align: middle;"></span> <?php esc_html_e( 'Google Profile & Redirect Configurations', 'review-funnel' ); ?></h2>
@@ -563,7 +726,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								<?php esc_html_e( 'Fetch Latest Google Reviews Now', 'review-funnel' ); ?>
 							</button>
 						</div>
+						<p class="submit" style="margin-top: 15px;">
+							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
+						</p>
+					</div><!-- /subtab-google -->
 
+					<!-- SUBTAB 2: GDPR & PRIVACY -->
+					<div id="subtab-privacy" class="wprf-subtab-section" style="display: none;">
 						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
 							<h2><span class="dashicons dashicons-shield" style="vertical-align: middle;"></span> <?php esc_html_e( 'GDPR / Privacy Policy Consent Settings', 'review-funnel' ); ?></h2>
 							<p class="description"><?php esc_html_e( 'Manage RODO / GDPR privacy policy checkboxes on your review submission funnel.', 'review-funnel' ); ?></p>
@@ -599,7 +768,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								</tr>
 							</table>
 						</div>
+						<p class="submit" style="margin-top: 15px;">
+							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
+						</p>
+					</div><!-- /subtab-privacy -->
 
+					<!-- SUBTAB 3: EMAIL NOTIFICATIONS -->
+					<div id="subtab-email" class="wprf-subtab-section" style="display: none;">
 						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
 							<h2><span class="dashicons dashicons-email-alt" style="vertical-align: middle;"></span> <?php esc_html_e( 'Email Notification Settings', 'review-funnel' ); ?></h2>
 							<table class="form-table">
@@ -612,7 +787,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								</tr>
 							</table>
 						</div>
+						<p class="submit" style="margin-top: 15px;">
+							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
+						</p>
+					</div><!-- /subtab-email -->
 
+					<!-- SUBTAB 4: SPAM PROTECTION -->
+					<div id="subtab-spam" class="wprf-subtab-section" style="display: none;">
 						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
 							<h2><span class="dashicons dashicons-shield" style="vertical-align: middle;"></span> <?php esc_html_e( 'Spam Protection Settings (Cloudflare Turnstile)', 'review-funnel' ); ?></h2>
 							<p class="description"><?php esc_html_e( 'Protect your review form from automated spambots using Cloudflare Turnstile (a secure, GDPR-compliant reCAPTCHA alternative).', 'review-funnel' ); ?></p>
@@ -647,7 +828,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								</tr>
 							</table>
 						</div>
+						<p class="submit" style="margin-top: 15px;">
+							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
+						</p>
+					</div><!-- /subtab-spam -->
 
+					<!-- SUBTAB 5: MAILERLITE SYNC -->
+					<div id="subtab-mailerlite" class="wprf-subtab-section" style="display: none;">
 						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
 							<h2><span class="dashicons dashicons-email-alt" style="vertical-align: middle;"></span> <?php esc_html_e( 'MailerLite Integration Settings (PRO)', 'review-funnel' ); ?></h2>
 							<p class="description"><?php esc_html_e( 'Automatically subscribe clients who request email updates to your MailerLite lists based on rating satisfaction.', 'review-funnel' ); ?></p>
@@ -702,236 +889,347 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 								<?php endif; ?>
 							</table>
 						</div>
-
-						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
-							<h2><span class="dashicons dashicons-art" style="vertical-align: middle;"></span> <?php esc_html_e( 'Form Style & Design Settings', 'review-funnel' ); ?></h2>
-							<table class="form-table">
-								<tr>
-									<th scope="row"><label for="wprf_btn_color"><?php esc_html_e( 'Button Background Color', 'review-funnel' ); ?></label></th>
-									<td>
-										<?php
-										$picker_btn_val = ( strpos( $btn_color, '#' ) === 0 && strlen( $btn_color ) <= 7 ) ? $btn_color : '#007a78';
-										?>
-										<input type="color" id="wprf_btn_color_picker" value="<?php echo esc_attr( $picker_btn_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
-										<input type="text" id="wprf_btn_color" name="wprf_btn_color" value="<?php echo esc_attr( $btn_color ); ?>" class="regular-text" style="vertical-align: middle;">
-										<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_btn_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
-										<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #007a78) or CSS gradients (e.g. linear-gradient(135deg, #007a78 0%, #00a4a2 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_btn_text_color"><?php esc_html_e( 'Button Text Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_btn_text_color" name="wprf_btn_text_color" value="<?php echo esc_attr( $btn_text_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_slider_arrow_color"><?php esc_html_e( 'Slider Arrows Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_slider_arrow_color" name="wprf_slider_arrow_color" value="<?php echo esc_attr( $slider_arrow_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_slider_arrow_style"><?php esc_html_e( 'Slider Arrows Style', 'review-funnel' ); ?></label></th>
-									<td>
-										<select id="wprf_slider_arrow_style" name="wprf_slider_arrow_style">
-											<option value="circle" <?php selected( $slider_arrow_style, 'circle' ); ?>><?php esc_html_e( 'Circle Border & Background', 'review-funnel' ); ?></option>
-											<option value="clean" <?php selected( $slider_arrow_style, 'clean' ); ?>><?php esc_html_e( 'Clean (No Circle)', 'review-funnel' ); ?></option>
-										</select>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_slider_dot_color"><?php esc_html_e( 'Slider Bullets Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_slider_dot_color" name="wprf_slider_dot_color" value="<?php echo esc_attr( $slider_dot_color ); ?>"></td>
-								</tr>
-
-								<!-- PRO advanced customization properties -->
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Advanced Container Settings (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_bg_color"><?php esc_html_e( 'Container Background', 'review-funnel' ); ?></label></th>
-									<td>
-										<?php
-										$picker_val = ( strpos( $form_bg_color, '#' ) === 0 && strlen( $form_bg_color ) <= 7 ) ? $form_bg_color : '#ffffff';
-										?>
-										<input type="color" id="wprf_form_bg_color_picker" value="<?php echo esc_attr( $picker_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
-										<input type="text" id="wprf_form_bg_color" name="wprf_form_bg_color" value="<?php echo esc_attr( $form_bg_color ); ?>" class="regular-text" style="vertical-align: middle;">
-										<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_form_bg_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
-										<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #fdfdfd) or CSS gradients (e.g. linear-gradient(135deg, #ffffff 0%, #f7fafc 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_border_style"><?php esc_html_e( 'Border Style', 'review-funnel' ); ?></label></th>
-									<td>
-										<select id="wprf_form_border_style" name="wprf_form_border_style">
-											<option value="none" <?php selected( $form_border_style, 'none' ); ?>><?php esc_html_e( 'None', 'review-funnel' ); ?></option>
-											<option value="solid" <?php selected( $form_border_style, 'solid' ); ?>><?php esc_html_e( 'Solid', 'review-funnel' ); ?></option>
-											<option value="dashed" <?php selected( $form_border_style, 'dashed' ); ?>><?php esc_html_e( 'Dashed', 'review-funnel' ); ?></option>
-											<option value="dotted" <?php selected( $form_border_style, 'dotted' ); ?>><?php esc_html_e( 'Dotted', 'review-funnel' ); ?></option>
-											<option value="double" <?php selected( $form_border_style, 'double' ); ?>><?php esc_html_e( 'Double', 'review-funnel' ); ?></option>
-										</select>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_border_width"><?php esc_html_e( 'Border Width', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_form_border_width" name="wprf_form_border_width" value="<?php echo esc_attr( $form_border_width ); ?>" class="small-text" placeholder="1px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_border_color"><?php esc_html_e( 'Border Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_form_border_color" name="wprf_form_border_color" value="<?php echo esc_attr( $form_border_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_border_radius"><?php esc_html_e( 'Border Radius (Zaokrąglenie)', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_form_border_radius" name="wprf_form_border_radius" value="<?php echo esc_attr( $form_border_radius ); ?>" class="small-text" placeholder="8px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_padding"><?php esc_html_e( 'Container Padding', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_form_padding" name="wprf_form_padding" value="<?php echo esc_attr( $form_padding ); ?>" class="small-text" placeholder="25px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_form_box_shadow"><?php esc_html_e( 'Container Shadow (box-shadow)', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_form_box_shadow" name="wprf_form_box_shadow" value="<?php echo esc_attr( $form_box_shadow ); ?>" class="regular-text">
-										<p class="description"><?php esc_html_e( 'CSS box-shadow property value (e.g. 0 4px 6px -1px rgba(0,0,0,0.05)).', 'review-funnel' ); ?></p>
-									</td>
-								</tr>
-								
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Form Fields Settings (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_field_bg_color"><?php esc_html_e( 'Field Background Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_field_bg_color" name="wprf_field_bg_color" value="<?php echo esc_attr( $field_bg_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_field_border_color"><?php esc_html_e( 'Field Border Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_field_border_color" name="wprf_field_border_color" value="<?php echo esc_attr( $field_border_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_field_focus_color"><?php esc_html_e( 'Field Focus Border Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_field_focus_color" name="wprf_field_focus_color" value="<?php echo esc_attr( $field_focus_color ); ?>"></td>
-								</tr>
-								
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Star Rating Customization (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_star_size"><?php esc_html_e( 'Star Rating Font Size', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_star_size" name="wprf_star_size" value="<?php echo esc_attr( $star_size ); ?>" class="small-text" placeholder="36px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_star_active_color"><?php esc_html_e( 'Active Star Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_star_active_color" name="wprf_star_active_color" value="<?php echo esc_attr( $star_active_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_star_inactive_color"><?php esc_html_e( 'Inactive Star Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_star_inactive_color" name="wprf_star_inactive_color" value="<?php echo esc_attr( $star_inactive_color ); ?>"></td>
-								</tr>
-								
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Typography Colors & Sizes (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_title_color"><?php esc_html_e( 'Step Title Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_title_color" name="wprf_title_color" value="<?php echo esc_attr( $title_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_title_size"><?php esc_html_e( 'Step Title Font Size', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_title_size" name="wprf_title_size" value="<?php echo esc_attr( $title_size ); ?>" class="small-text" placeholder="16px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_label_color"><?php esc_html_e( 'Input Label Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_label_color" name="wprf_label_color" value="<?php echo esc_attr( $label_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_label_size"><?php esc_html_e( 'Input Label Font Size', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_label_size" name="wprf_label_size" value="<?php echo esc_attr( $label_size ); ?>" class="small-text" placeholder="13px">
-									</td>
-								</tr>
-								
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Review List Date Settings (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_show_review_date"><?php esc_html_e( 'Show Review Date on Frontend', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="checkbox" id="wprf_show_review_date" name="wprf_show_review_date" value="yes" <?php checked( $show_review_date, 'yes' ); ?>>
-										<span class="description"><?php esc_html_e( 'Check this to display the date when reviews are listed on the front-end (format: dd.mm.yyyy).', 'review-funnel' ); ?></span>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_review_date_color"><?php esc_html_e( 'Review Date Text Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_review_date_color" name="wprf_review_date_color" value="<?php echo esc_attr( $review_date_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_review_date_size"><?php esc_html_e( 'Review Date Font Size', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_review_date_size" name="wprf_review_date_size" value="<?php echo esc_attr( $review_date_size ); ?>" class="small-text" placeholder="11px">
-									</td>
-								</tr>
-								<tr>
-									<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Empty Reviews Message Customization (PRO)', 'review-funnel' ); ?></h3></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_no_reviews_color"><?php esc_html_e( 'Text Color', 'review-funnel' ); ?></label></th>
-									<td><input type="color" id="wprf_no_reviews_color" name="wprf_no_reviews_color" value="<?php echo esc_attr( $no_reviews_color ); ?>"></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_no_reviews_size"><?php esc_html_e( 'Font Size', 'review-funnel' ); ?></label></th>
-									<td>
-										<input type="text" id="wprf_no_reviews_size" name="wprf_no_reviews_size" value="<?php echo esc_attr( $no_reviews_size ); ?>" class="small-text" placeholder="15px">
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_no_reviews_weight"><?php esc_html_e( 'Font Weight', 'review-funnel' ); ?></label></th>
-									<td>
-										<select id="wprf_no_reviews_weight" name="wprf_no_reviews_weight">
-											<option value="normal" <?php selected( $no_reviews_weight, 'normal' ); ?>>Normal</option>
-											<option value="bold" <?php selected( $no_reviews_weight, 'bold' ); ?>>Bold</option>
-											<option value="500" <?php selected( $no_reviews_weight, '500' ); ?>>Medium (500)</option>
-											<option value="600" <?php selected( $no_reviews_weight, '600' ); ?>>Semi-Bold (600)</option>
-											<option value="700" <?php selected( $no_reviews_weight, '700' ); ?>>Bold (700)</option>
-										</select>
-									</td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_no_reviews_style"><?php esc_html_e( 'Font Style', 'review-funnel' ); ?></label></th>
-									<td>
-										<select id="wprf_no_reviews_style" name="wprf_no_reviews_style">
-											<option value="italic" <?php selected( $no_reviews_style, 'italic' ); ?>>Italic</option>
-											<option value="normal" <?php selected( $no_reviews_style, 'normal' ); ?>>Normal</option>
-										</select>
-									</td>
-								</tr>
-							</table>
-						</div>
-
-						<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
-							<h2><span class="dashicons dashicons-testimonial" style="vertical-align: middle;"></span> <?php esc_html_e( 'Funnel Notifications & Messages', 'review-funnel' ); ?></h2>
-							<table class="form-table">
-								<tr>
-									<th scope="row"><label for="wprf_success_msg"><?php esc_html_e( 'Standard Success Message (1-3 Stars)', 'review-funnel' ); ?></label></th>
-									<td><textarea id="wprf_success_msg" name="wprf_success_msg" rows="3" class="large-text"><?php echo esc_textarea( $success_msg ); ?></textarea></td>
-								</tr>
-								<tr>
-									<th scope="row"><label for="wprf_google_redirect_msg"><?php esc_html_e( 'Google Prompt Message (4-5 Stars)', 'review-funnel' ); ?></label></th>
-									<td><textarea id="wprf_google_redirect_msg" name="wprf_google_redirect_msg" rows="3" class="large-text"><?php echo esc_textarea( $google_redirect_msg ); ?></textarea></td>
-								</tr>
-							</table>
-						</div>
-
-						<p class="submit">
-							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save All Settings', 'review-funnel' ); ?></button>
+						<p class="submit" style="margin-top: 15px;">
+							<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
 						</p>
+					</div><!-- /subtab-mailerlite -->
+
+					<!-- SUBTAB 6: APPEARANCE & LAYOUT PRO -->
+					<div id="subtab-design" class="wprf-subtab-section" style="display: none;">
+						<div class="wprf-appearance-container">
+							
+							<!-- LEWA KOLUMNA: Pionowe menu podkategorii (Sidebar) -->
+							<div class="wprf-appearance-sidebar">
+								<ul class="wprf-appearance-menu">
+									<li class="wprf-appearance-menu-item active" data-appearance-section="wprf-sec-list-layout">
+										<a href="#">
+											<span class="dashicons dashicons-layout"></span>
+											<?php esc_html_e( 'Default Reviews List', 'review-funnel' ); ?>
+										</a>
+									</li>
+									<li class="wprf-appearance-menu-item" data-appearance-section="wprf-sec-form-style">
+										<a href="#">
+											<span class="dashicons dashicons-art"></span>
+											<?php esc_html_e( 'Form Style & Design', 'review-funnel' ); ?>
+										</a>
+									</li>
+									<li class="wprf-appearance-menu-item" data-appearance-section="wprf-sec-avatar-icons">
+										<a href="#">
+											<span class="dashicons dashicons-admin-users"></span>
+											<?php esc_html_e( 'Anonymous Avatar & Icons', 'review-funnel' ); ?>
+										</a>
+									</li>
+									<li class="wprf-appearance-menu-item" data-appearance-section="wprf-sec-typography">
+										<a href="#">
+											<span class="dashicons dashicons-editor-textcolor"></span>
+											<?php esc_html_e( 'Typography & Sizes', 'review-funnel' ); ?>
+										</a>
+									</li>
+								</ul>
+							</div>
+
+							<!-- PRAWA KOLUMNA: Zawartość sekcji (Content) -->
+							<div class="wprf-appearance-content">
+								
+								<!-- SEKCJA 1: Default Reviews List Layout -->
+								<div id="wprf-sec-list-layout" class="wprf-appearance-section-pane" style="display: block;">
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-layout" style="vertical-align: middle;"></span> <?php esc_html_e( 'Default Reviews List Layout (PRO)', 'review-funnel' ); ?></h2>
+										<p class="description"><?php esc_html_e( 'Select the default display layout for reviews lists rendered by the [review_list] shortcode.', 'review-funnel' ); ?></p>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_default_layout"><?php esc_html_e( 'Default Display Layout', 'review-funnel' ); ?></label></th>
+												<td>
+													<select id="wprf_default_layout" name="wprf_default_layout" style="min-width: 280px;">
+														<option value="grid" <?php selected( $default_layout, 'grid' ); ?>><?php esc_html_e( 'Grid Cards (Siatka kart)', 'review-funnel' ); ?></option>
+														<option value="slider" <?php selected( $default_layout, 'slider' ); ?>><?php esc_html_e( 'Touch Slider / Carousel (Przesuwany slider)', 'review-funnel' ); ?></option>
+														<option value="masonry" <?php selected( $default_layout, 'masonry' ); ?>><?php esc_html_e( 'Masonry Grid (Dynamiczna siatka)', 'review-funnel' ); ?></option>
+													</select>
+													<p class="description"><?php esc_html_e( 'Choose between Grid, Slider (Carousel), or Masonry layouts. You can also override this on individual pages using layout="slider" or layout="grid" in the shortcode.', 'review-funnel' ); ?></p>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_enable_filters"><?php esc_html_e( 'Enable Rating Filter Buttons', 'review-funnel' ); ?></label></th>
+												<td>
+													<label>
+														<input type="checkbox" id="wprf_enable_filters" name="wprf_enable_filters" value="true" <?php checked( $enable_filters, 'true' ); ?>>
+														<?php esc_html_e( 'Display rating filter buttons (Wszystkie, 5 ★, 4 ★, 3 ★, 2 ★, 1 ★) above Grid and Masonry review lists by default.', 'review-funnel' ); ?>
+													</label>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<!-- SEKCJA 2: Form Style & Design -->
+								<div id="wprf-sec-form-style" class="wprf-appearance-section-pane" style="display: none;">
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-art" style="vertical-align: middle;"></span> <?php esc_html_e( 'Form Style & Design Settings', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_btn_color"><?php esc_html_e( 'Button Background Color', 'review-funnel' ); ?></label></th>
+												<td>
+													<?php
+													$picker_btn_val = ( strpos( $btn_color, '#' ) === 0 && strlen( $btn_color ) <= 7 ) ? $btn_color : '#007a78';
+													?>
+													<input type="color" id="wprf_btn_color_picker" value="<?php echo esc_attr( $picker_btn_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
+													<input type="text" id="wprf_btn_color" name="wprf_btn_color" value="<?php echo esc_attr( $btn_color ); ?>" class="regular-text" style="vertical-align: middle;">
+													<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_btn_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
+													<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #007a78) or CSS gradients (e.g. linear-gradient(135deg, #007a78 0%, #00a4a2 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_btn_text_color"><?php esc_html_e( 'Button Text Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_btn_text_color" name="wprf_btn_text_color" value="<?php echo esc_attr( $btn_text_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_slider_arrow_color"><?php esc_html_e( 'Slider Arrows Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_slider_arrow_color" name="wprf_slider_arrow_color" value="<?php echo esc_attr( $slider_arrow_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_slider_arrow_style"><?php esc_html_e( 'Slider Arrows Style', 'review-funnel' ); ?></label></th>
+												<td>
+													<select id="wprf_slider_arrow_style" name="wprf_slider_arrow_style">
+														<option value="circle" <?php selected( $slider_arrow_style, 'circle' ); ?>><?php esc_html_e( 'Circle Border & Background', 'review-funnel' ); ?></option>
+														<option value="clean" <?php selected( $slider_arrow_style, 'clean' ); ?>><?php esc_html_e( 'Clean (No Circle)', 'review-funnel' ); ?></option>
+													</select>
+												</td>
+											</tr>
+
+											<!-- Advanced Container Settings (PRO) -->
+											<tr>
+												<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Advanced Container Settings (PRO)', 'review-funnel' ); ?></h3></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_bg_color"><?php esc_html_e( 'Container Background', 'review-funnel' ); ?></label></th>
+												<td>
+													<?php
+													$picker_val = ( strpos( $form_bg_color, '#' ) === 0 && strlen( $form_bg_color ) <= 7 ) ? $form_bg_color : '#ffffff';
+													?>
+													<input type="color" id="wprf_form_bg_color_picker" value="<?php echo esc_attr( $picker_val ); ?>" style="vertical-align: middle; margin-right: 5px; height: 30px; width: 40px; padding: 0; border: 1px solid #ccc; cursor: pointer;">
+													<input type="text" id="wprf_form_bg_color" name="wprf_form_bg_color" value="<?php echo esc_attr( $form_bg_color ); ?>" class="regular-text" style="vertical-align: middle;">
+													<button type="button" class="button wprf-open-gradient-generator" data-target="wprf_form_bg_color" style="vertical-align: middle; margin-left: 5px;">🎨 <?php esc_html_e( 'Gradient Generator', 'review-funnel' ); ?></button>
+													<p class="description"><?php esc_html_e( 'Supports hex color (e.g. #fdfdfd) or CSS gradients (e.g. linear-gradient(135deg, #ffffff 0%, #f7fafc 100%)). Use the color picker to select solid colors easily.', 'review-funnel' ); ?></p>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_border_style"><?php esc_html_e( 'Border Style', 'review-funnel' ); ?></label></th>
+												<td>
+													<select id="wprf_form_border_style" name="wprf_form_border_style">
+														<option value="none" <?php selected( $form_border_style, 'none' ); ?>><?php esc_html_e( 'None', 'review-funnel' ); ?></option>
+														<option value="solid" <?php selected( $form_border_style, 'solid' ); ?>><?php esc_html_e( 'Solid', 'review-funnel' ); ?></option>
+														<option value="dashed" <?php selected( $form_border_style, 'dashed' ); ?>><?php esc_html_e( 'Dashed', 'review-funnel' ); ?></option>
+														<option value="dotted" <?php selected( $form_border_style, 'dotted' ); ?>><?php esc_html_e( 'Dotted', 'review-funnel' ); ?></option>
+														<option value="double" <?php selected( $form_border_style, 'double' ); ?>><?php esc_html_e( 'Double', 'review-funnel' ); ?></option>
+													</select>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_border_width"><?php esc_html_e( 'Border Width', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_form_border_width" name="wprf_form_border_width" value="<?php echo esc_attr( $form_border_width ); ?>" class="small-text" placeholder="1px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_border_color"><?php esc_html_e( 'Border Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_form_border_color" name="wprf_form_border_color" value="<?php echo esc_attr( $form_border_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_border_radius"><?php esc_html_e( 'Border Radius (Zaokrąglenie)', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_form_border_radius" name="wprf_form_border_radius" value="<?php echo esc_attr( $form_border_radius ); ?>" class="small-text" placeholder="8px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_padding"><?php esc_html_e( 'Container Padding', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_form_padding" name="wprf_form_padding" value="<?php echo esc_attr( $form_padding ); ?>" class="small-text" placeholder="25px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_form_box_shadow"><?php esc_html_e( 'Container Shadow (box-shadow)', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_form_box_shadow" name="wprf_form_box_shadow" value="<?php echo esc_attr( $form_box_shadow ); ?>" class="regular-text">
+													<p class="description"><?php esc_html_e( 'CSS box-shadow property value (e.g. 0 4px 6px -1px rgba(0,0,0,0.05)).', 'review-funnel' ); ?></p>
+												</td>
+											</tr>
+
+											<!-- Form Fields Settings (PRO) -->
+											<tr>
+												<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Form Fields Settings (PRO)', 'review-funnel' ); ?></h3></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_field_bg_color"><?php esc_html_e( 'Field Background Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_field_bg_color" name="wprf_field_bg_color" value="<?php echo esc_attr( $field_bg_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_field_border_color"><?php esc_html_e( 'Field Border Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_field_border_color" name="wprf_field_border_color" value="<?php echo esc_attr( $field_border_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_field_focus_color"><?php esc_html_e( 'Field Focus Border Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_field_focus_color" name="wprf_field_focus_color" value="<?php echo esc_attr( $field_focus_color ); ?>"></td>
+											</tr>
+
+											<!-- Star Rating Customization (PRO) -->
+											<tr>
+												<td colspan="2"><hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><h3><?php esc_html_e( 'Star Rating Customization (PRO)', 'review-funnel' ); ?></h3></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_star_size"><?php esc_html_e( 'Star Rating Font Size', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_star_size" name="wprf_star_size" value="<?php echo esc_attr( $star_size ); ?>" class="small-text" placeholder="36px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_star_active_color"><?php esc_html_e( 'Active Star Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_star_active_color" name="wprf_star_active_color" value="<?php echo esc_attr( $star_active_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_star_inactive_color"><?php esc_html_e( 'Inactive Star Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_star_inactive_color" name="wprf_star_inactive_color" value="<?php echo esc_attr( $star_inactive_color ); ?>"></td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<!-- SEKCJA 3: Anonymous Avatar & Icons -->
+								<div id="wprf-sec-avatar-icons" class="wprf-appearance-section-pane" style="display: none;">
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-admin-users" style="vertical-align: middle;"></span> <?php esc_html_e( 'Anonymous Avatar Customization (PRO)', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_custom_avatar_url"><?php esc_html_e( 'Custom Default Avatar Icon', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_custom_avatar_url" name="wprf_custom_avatar_url" value="<?php echo esc_attr( $custom_avatar_url ); ?>" class="regular-text" style="vertical-align: middle;">
+													<button type="button" id="wprf_upload_avatar_btn" class="button button-secondary" style="vertical-align: middle; margin-left: 5px;">🖼️ <?php esc_html_e( 'Upload / Select Image', 'review-funnel' ); ?></button>
+													<p class="description"><?php esc_html_e( 'Upload or select a custom anonymous avatar icon (PNG, SVG, JPG) from your computer to use for anonymous reviews instead of the neutral user silhouette.', 'review-funnel' ); ?></p>
+													<?php if ( ! empty( $custom_avatar_url ) ) : ?>
+														<div style="margin-top: 8px;"><img src="<?php echo esc_url( $custom_avatar_url ); ?>" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid #cbd5e1;"></div>
+													<?php endif; ?>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<!-- SEKCJA 4: Typography & Sizes -->
+								<div id="wprf-sec-typography" class="wprf-appearance-section-pane" style="display: none;">
+									<!-- Typography Colors & Sizes (PRO) -->
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-editor-textcolor" style="vertical-align: middle;"></span> <?php esc_html_e( 'Typography Colors & Sizes (PRO)', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_title_color"><?php esc_html_e( 'Step Title Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_title_color" name="wprf_title_color" value="<?php echo esc_attr( $title_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_title_size"><?php esc_html_e( 'Step Title Font Size', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_title_size" name="wprf_title_size" value="<?php echo esc_attr( $title_size ); ?>" class="small-text" placeholder="16px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_label_color"><?php esc_html_e( 'Input Label Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_label_color" name="wprf_label_color" value="<?php echo esc_attr( $label_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_label_size"><?php esc_html_e( 'Input Label Font Size', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_label_size" name="wprf_label_size" value="<?php echo esc_attr( $label_size ); ?>" class="small-text" placeholder="13px">
+												</td>
+											</tr>
+										</table>
+									</div>
+
+									<!-- Review List Date Settings (PRO) -->
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-calendar-alt" style="vertical-align: middle;"></span> <?php esc_html_e( 'Review List Date Settings (PRO)', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_show_review_date"><?php esc_html_e( 'Show Review Date on Frontend', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="checkbox" id="wprf_show_review_date" name="wprf_show_review_date" value="yes" <?php checked( $show_review_date, 'yes' ); ?>>
+													<span class="description"><?php esc_html_e( 'Check this to display the date when reviews are listed on the front-end (format: dd.mm.yyyy).', 'review-funnel' ); ?></span>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_review_date_color"><?php esc_html_e( 'Review Date Text Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_review_date_color" name="wprf_review_date_color" value="<?php echo esc_attr( $review_date_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_review_date_size"><?php esc_html_e( 'Review Date Font Size', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_review_date_size" name="wprf_review_date_size" value="<?php echo esc_attr( $review_date_size ); ?>" class="small-text" placeholder="11px">
+												</td>
+											</tr>
+										</table>
+									</div>
+
+									<!-- Empty Reviews Message Customization (PRO) -->
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-editor-quote" style="vertical-align: middle;"></span> <?php esc_html_e( 'Empty Reviews Message Customization (PRO)', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_no_reviews_color"><?php esc_html_e( 'Text Color', 'review-funnel' ); ?></label></th>
+												<td><input type="color" id="wprf_no_reviews_color" name="wprf_no_reviews_color" value="<?php echo esc_attr( $no_reviews_color ); ?>"></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_no_reviews_size"><?php esc_html_e( 'Font Size', 'review-funnel' ); ?></label></th>
+												<td>
+													<input type="text" id="wprf_no_reviews_size" name="wprf_no_reviews_size" value="<?php echo esc_attr( $no_reviews_size ); ?>" class="small-text" placeholder="15px">
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_no_reviews_weight"><?php esc_html_e( 'Font Weight', 'review-funnel' ); ?></label></th>
+												<td>
+													<select id="wprf_no_reviews_weight" name="wprf_no_reviews_weight">
+														<option value="normal" <?php selected( $no_reviews_weight, 'normal' ); ?>>Normal</option>
+														<option value="bold" <?php selected( $no_reviews_weight, 'bold' ); ?>>Bold</option>
+														<option value="500" <?php selected( $no_reviews_weight, '500' ); ?>>Medium (500)</option>
+														<option value="600" <?php selected( $no_reviews_weight, '600' ); ?>>Semi-Bold (600)</option>
+														<option value="700" <?php selected( $no_reviews_weight, '700' ); ?>>Bold (700)</option>
+													</select>
+												</td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_no_reviews_style"><?php esc_html_e( 'Font Style', 'review-funnel' ); ?></label></th>
+												<td>
+													<select id="wprf_no_reviews_style" name="wprf_no_reviews_style">
+														<option value="italic" <?php selected( $no_reviews_style, 'italic' ); ?>>Italic</option>
+														<option value="normal" <?php selected( $no_reviews_style, 'normal' ); ?>>Normal</option>
+													</select>
+												</td>
+											</tr>
+										</table>
+									</div>
+
+									<!-- Funnel Notifications & Messages -->
+									<div class="card" style="padding:20px; margin-bottom:20px; max-width:800px;">
+										<h2><span class="dashicons dashicons-testimonial" style="vertical-align: middle;"></span> <?php esc_html_e( 'Funnel Notifications & Messages', 'review-funnel' ); ?></h2>
+										<table class="form-table">
+											<tr>
+												<th scope="row"><label for="wprf_success_msg"><?php esc_html_e( 'Standard Success Message (1-3 Stars)', 'review-funnel' ); ?></label></th>
+												<td><textarea id="wprf_success_msg" name="wprf_success_msg" rows="3" class="large-text"><?php echo esc_textarea( $success_msg ); ?></textarea></td>
+											</tr>
+											<tr>
+												<th scope="row"><label for="wprf_google_redirect_msg"><?php esc_html_e( 'Google Prompt Message (4-5 Stars)', 'review-funnel' ); ?></label></th>
+												<td><textarea id="wprf_google_redirect_msg" name="wprf_google_redirect_msg" rows="3" class="large-text"><?php echo esc_textarea( $google_redirect_msg ); ?></textarea></td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<!-- Przycisk zapisu podpięty pod cały formularz -->
+								<p class="submit" style="margin-top: 15px;">
+									<button type="submit" name="save_wprf_settings" class="button button-primary button-large"><?php esc_html_e( 'Save Settings', 'review-funnel' ); ?></button>
+								</p>
+							</div>
+						</div>
+					</div><!-- /subtab-design -->
+
 					</form>
-				</div>
+				</div><!-- /tab-settings -->
 
 				<!-- --- MODIFICATION: TAB 3: TRANSLATIONS & LOCALIZATION --- -->
 				<div id="tab-translations" class="tab-content-section" style="margin-top: 20px; display: none;">
@@ -1036,6 +1334,10 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 										<small style="color: #666; font-style: italic;"><?php esc_html_e( 'Use {profile} to display the therapist name or profile ID.', 'review-funnel' ); ?></small>
 									</td>
 								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_t_filter_all"><?php esc_html_e( 'Rating Filter "All" Button Text', 'review-funnel' ); ?></label></th>
+									<td><input type="text" id="wprf_t_filter_all" name="wprf_t[filter_all]" value="<?php echo esc_attr( $t_filter_all ); ?>" class="large-text"></td>
+								</tr>
 							</table>
 						</div>
 
@@ -1125,6 +1427,11 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 									<td><code>[review_list show_date="false"]</code></td>
 								</tr>
 								<tr>
+									<td><strong>filters</strong></td>
+									<td>Enable or disable rating filter buttons (Wszystkie, 5 ★, 4 ★, 3 ★, 2 ★, 1 ★) above Grid and Masonry layouts. Allowed values: <code>true</code>, <code>false</code>.</td>
+									<td><code>[review_list filters="true"]</code> or <code>[review_list filters="false"]</code></td>
+								</tr>
+								<tr>
 									<td><strong>char_limit</strong></td>
 									<td>Limit the visible review text length to a specific number of characters. Displays an interactive "read more" link for long reviews. Set to <code>0</code> to disable truncation. Default is <code>180</code>.</td>
 									<td><code>[review_list char_limit="150"]</code></td>
@@ -1149,6 +1456,285 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 							<li><strong><?php esc_html_e( 'Example:', 'review-funnel' ); ?></strong> <code>[average_rating id="john-smith" star_color="#ffbb00" font_size="16px" show_count="false"]</code></li>
 						</ul>
 						<p><em>* <?php esc_html_e( 'Note: Just like the reviews list, if the therapist has 0 reviews, this badge will automatically return nothing to hide the section cleanly.', 'review-funnel' ); ?></em></p>
+					</div>
+				</div><!-- /tab-shortcodes -->
+
+				<!-- TAB 5: SUPPORT & HELP -->
+				<div id="tab-support" class="tab-content-section" style="margin-top: 20px; display: none;">
+					
+					<!-- 1. SYSTEM STATUS & DIAGNOSTIC REPORT CARD -->
+					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:800px; margin-bottom: 20px;">
+						<h2><span class="dashicons dashicons-dashboard" style="vertical-align: middle;"></span> <?php esc_html_e( 'System Status & Diagnostics', 'review-funnel' ); ?></h2>
+						<p class="description"><?php esc_html_e( 'Technical details about your server environment and active plugin integrations.', 'review-funnel' ); ?></p>
+						
+						<table class="widefat striped" style="margin-top: 15px; max-width: 100%;">
+							<tbody>
+								<tr>
+									<td><strong>Plugin Version</strong></td>
+									<td><code>Review Funnel Plugin v1.0</code></td>
+								</tr>
+								<tr>
+									<td><strong>WordPress & PHP Version</strong></td>
+									<td>WordPress <?php echo esc_html( get_bloginfo( 'version' ) ); ?> | PHP <?php echo esc_html( phpversion() ); ?></td>
+								</tr>
+								<tr>
+									<td><strong>Database Table</strong></td>
+									<td>
+										<?php
+										$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$this->table_name}'" ) === $this->table_name;
+										if ( $table_exists ) {
+											$review_count = intval( $wpdb->get_var( "SELECT COUNT(*) FROM {$this->table_name}" ) );
+											echo '<span style="color:green; font-weight:bold;">✔ Connected</span> (' . esc_html( $this->table_name ) . ' - ' . $review_count . ' reviews)';
+										} else {
+											echo '<span style="color:red; font-weight:bold;">✖ Table Missing!</span>';
+										}
+										?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>cURL & OpenSSL Support</strong></td>
+									<td>
+										<?php
+										if ( function_exists( 'curl_version' ) && extension_loaded( 'openssl' ) ) {
+											echo '<span style="color:green; font-weight:bold;">✔ Available</span> (Required for Google API & MailerLite API)';
+										} else {
+											echo '<span style="color:orange; font-weight:bold;">⚠ Limited</span> (cURL or OpenSSL extension missing)';
+										}
+										?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>Google Direct Review URL (Keyless Lejek)</strong></td>
+									<td>
+										<?php if ( ! empty( $direct_url ) ) : ?>
+											<span style="color:green; font-weight:bold;">✔ Configured</span> (<code><?php echo esc_html( substr( $direct_url, 0, 45 ) ); ?>...</code>)
+										<?php else : ?>
+											<span style="color:#666;">Not set</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>Google Places API Key</strong></td>
+									<td>
+										<?php if ( ! empty( $api_key ) ) : ?>
+											<span style="color:green; font-weight:bold;">✔ Configured</span> (<code><?php echo esc_html( substr( $api_key, 0, 6 ) . '...' ); ?></code>)
+										<?php else : ?>
+											<span style="color:#666;">Not set</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>Google Place ID</strong></td>
+									<td>
+										<?php if ( ! empty( $place_id ) ) : ?>
+											<span style="color:green; font-weight:bold;">✔ Configured</span> (<code><?php echo esc_html( $place_id ); ?></code>)
+										<?php else : ?>
+											<span style="color:#666;">Not set</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>MailerLite Integration (v3)</strong></td>
+									<td>
+										<?php if ( ! empty( $mailerlite_api_key ) ) : ?>
+											<span style="color:green; font-weight:bold;">✔ Configured</span> (API Key active)
+										<?php else : ?>
+											<span style="color:#666;">Disabled / Not set</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+								<tr>
+									<td><strong>Cloudflare Turnstile Protection</strong></td>
+									<td>
+										<?php if ( 'yes' === $enable_turnstile && ! empty( $turnstile_site_key ) ) : ?>
+											<span style="color:green; font-weight:bold;">✔ Enabled</span>
+										<?php else : ?>
+											<span style="color:#666;">Disabled</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- 1B. RECENT EMAIL LOGS CARD -->
+					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:800px; margin-bottom: 20px;">
+						<h2><span class="dashicons dashicons-list-view" style="vertical-align: middle;"></span> <?php esc_html_e( 'Plugin Email Delivery Logs', 'review-funnel' ); ?></h2>
+						<p class="description"><?php esc_html_e( 'Recent outgoing wp_mail() delivery attempts logged by Review Funnel Plugin.', 'review-funnel' ); ?></p>
+						
+						<table class="widefat striped" style="margin-top: 15px;">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Date & Time', 'review-funnel' ); ?></th>
+									<th><?php esc_html_e( 'Recipient', 'review-funnel' ); ?></th>
+									<th><?php esc_html_e( 'Subject', 'review-funnel' ); ?></th>
+									<th><?php esc_html_e( 'Status / Result', 'review-funnel' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php
+								$mail_logs = get_option( 'wprf_mail_logs', array() );
+								if ( ! empty( $mail_logs ) && is_array( $mail_logs ) ) :
+									foreach ( $mail_logs as $log ) :
+								?>
+									<tr>
+										<td><code><?php echo esc_html( $log['timestamp'] ); ?></code></td>
+										<td><?php echo esc_html( $log['recipient'] ); ?></td>
+										<td><?php echo esc_html( $log['subject'] ); ?></td>
+										<td>
+											<?php if ( 'SUCCESS' === $log['status'] ) : ?>
+												<span style="color:#00a32a; font-weight:bold;">✔ Sent (SUCCESS)</span>
+											<?php else : ?>
+												<span style="color:#d63638; font-weight:bold;">✖ Failed: <?php echo esc_html( $log['error'] ); ?></span>
+											<?php endif; ?>
+										</td>
+									</tr>
+								<?php
+									endforeach;
+								else :
+								?>
+									<tr>
+										<td colspan="4" style="color:#666; font-style:italic;"><?php esc_html_e( 'No plugin email attempts logged yet.', 'review-funnel' ); ?></td>
+									</tr>
+								<?php endif; ?>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- 2. STEP-BY-STEP GOOGLE SETUP GUIDE CARD -->
+					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:800px; margin-bottom: 20px;">
+						<h2><span class="dashicons dashicons-info" style="vertical-align: middle;"></span> <?php esc_html_e( 'How to Find Google API Key, Place ID & Direct Link', 'review-funnel' ); ?></h2>
+						<p class="description"><?php esc_html_e( 'Step-by-step instructions for linking your Google Business Profile to the Review Funnel plugin.', 'review-funnel' ); ?></p>
+						
+						<hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+
+						<h3 style="margin-bottom: 5px;">1. Google Direct Review URL (Keyless Lejek - Easiest & Recommended)</h3>
+						<p style="margin-top: 0; color: #444;">
+							The Direct Review URL allows satisfied clients (4-5 stars) to be redirected straight to your Google Maps review pop-up without needing a Google API key.
+						</p>
+						<ol style="margin-left: 20px; line-height: 1.6;">
+							<li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps</a> and search for your business/clinic name.</li>
+							<li>Click on your business profile, then click the <strong>"Ask for reviews"</strong> or <strong>"Share review form"</strong> button.</li>
+							<li>Copy the short review link provided by Google (e.g., <code>https://g.page/r/.../review</code> or <code>https://maps.app.goo.gl/...</code>).</li>
+							<li>Paste this link into <strong>Settings & Customization &gt; Google API &amp; Redirects &gt; Google Direct Review URL</strong>.</li>
+						</ol>
+
+						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+
+						<h3 style="margin-bottom: 5px;">2. How to Find your Google Place ID</h3>
+						<p style="margin-top: 0; color: #444;">
+							The Google Place ID is a unique string that identifies your business location in Google Cloud.
+						</p>
+						<ol style="margin-left: 20px; line-height: 1.6;">
+							<li>Open the official <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" rel="noopener">Google Place ID Finder Tool</a>.</li>
+							<li>In the search box on the map, type your business or clinic name and address.</li>
+							<li>Click your business in the dropdown list.</li>
+							<li>A pop-up will appear displaying your <strong>Place ID</strong> (an alphanumeric code starting with <code>ChIJ...</code>).</li>
+							<li>Copy the code and paste it into <strong>Settings & Customization &gt; Google API &amp; Redirects &gt; Google Place ID</strong>.</li>
+						</ol>
+
+						<hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+
+						<h3 style="margin-bottom: 5px;">3. How to Obtain a Google Places API Key</h3>
+						<p style="margin-top: 0; color: #444;">
+							Required if you want the plugin to automatically fetch and display existing Google Maps reviews on your website.
+						</p>
+						<ol style="margin-left: 20px; line-height: 1.6;">
+							<li>Log in to the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>.</li>
+							<li>Create a new project or select an existing one.</li>
+							<li>Navigate to <strong>APIs &amp; Services &gt; Library</strong> and enable <strong>Places API</strong>.</li>
+							<li>Go to <strong>APIs &amp; Services &gt; Credentials</strong>, click <strong>Create Credentials</strong>, and select <strong>API key</strong>.</li>
+							<li>Copy your newly created API key and paste it into <strong>Settings & Customization &gt; Google API &amp; Redirects &gt; Google API Key</strong>.</li>
+						</ol>
+					</div>
+
+					<!-- 3. FAQ CARD -->
+					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:800px; margin-bottom: 20px;">
+						<h2><span class="dashicons dashicons-help" style="vertical-align: middle;"></span> <?php esc_html_e( 'Frequently Asked Questions (FAQ)', 'review-funnel' ); ?></h2>
+						
+						<p><strong><?php esc_html_e( 'Q: How does the Direct Google Link (Keyless Lejek) work?', 'review-funnel' ); ?></strong><br>
+						<?php esc_html_e( 'A: If you provide a direct Google review link in Settings > Google API & Redirects, clients rating 4-5 stars will be sent directly to your Google Maps review form without requiring a Google Places API key.', 'review-funnel' ); ?></p>
+						
+						<p><strong><?php esc_html_e( 'Q: How do I display reviews on my site?', 'review-funnel' ); ?></strong><br>
+						<?php esc_html_e( 'A: Use the [review_list] shortcode in any page or post. Check the Shortcodes Guide tab for all layout options (Grid, Touch Slider, Masonry).', 'review-funnel' ); ?></p>
+
+						<p><strong><?php esc_html_e( 'Q: What happens to 1-3 star reviews?', 'review-funnel' ); ?></strong><br>
+						<?php esc_html_e( 'A: Constructive feedback (1-3 stars) is captured internally in your WordPress database and emailed directly to your specified admin notification email addresses.', 'review-funnel' ); ?></p>
+					</div>
+
+					<!-- 4. CONTACT SUPPORT & SEND DIAGNOSTIC REPORT FORM -->
+					<div class="card" style="padding: 25px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width:800px;">
+						<h2><span class="dashicons dashicons-email-alt" style="vertical-align: middle;"></span> <?php esc_html_e( 'Contact Support & Send Diagnostic Report', 'review-funnel' ); ?></h2>
+						<p class="description"><?php esc_html_e( 'Send a support ticket and full server diagnostic report directly to technical support.', 'review-funnel' ); ?></p>
+						
+						<form method="post" action="">
+							<?php wp_nonce_field( 'wprf_support_send_action', 'wprf_support_send_nonce' ); ?>
+							
+							<table class="form-table">
+								<tr>
+									<th scope="row"><label for="wprf_support_recipient"><?php esc_html_e( 'Support Email Address', 'review-funnel' ); ?></label></th>
+									<td>
+										<input type="email" id="wprf_support_recipient" name="wprf_support_recipient" value="lechwyzewski@gmail.com" class="regular-text" required>
+										<p class="description"><?php esc_html_e( 'Default support recipient email (default: lechwyzewski@gmail.com).', 'review-funnel' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_support_reply_to"><?php esc_html_e( 'Your Reply-to Email', 'review-funnel' ); ?></label></th>
+									<td>
+										<input type="email" id="wprf_support_reply_to" name="wprf_support_reply_to" value="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text" required>
+										<p class="description"><?php esc_html_e( 'Your email address so support can reply back to you.', 'review-funnel' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_support_message"><?php esc_html_e( 'Message / Description of Issue', 'review-funnel' ); ?></label></th>
+									<td>
+										<textarea id="wprf_support_message" name="wprf_support_message" rows="4" class="large-text" placeholder="<?php esc_attr_e( 'Describe your question or technical issue...', 'review-funnel' ); ?>"></textarea>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><label for="wprf_include_diagnostics"><?php esc_html_e( 'Attach System Report', 'review-funnel' ); ?></label></th>
+									<td>
+										<label>
+											<input type="checkbox" id="wprf_include_diagnostics" name="wprf_include_diagnostics" value="yes" checked>
+											<?php esc_html_e( 'Include System Status & Server Diagnostic Info (PHP version, Database table, Google API status, etc.)', 'review-funnel' ); ?>
+										</label>
+									</td>
+								</tr>
+							</table>
+
+							<textarea id="wprf_raw_diag_report" style="display:none;"><?php
+$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$this->table_name}'" ) === $this->table_name;
+$review_count = $table_exists ? intval( $wpdb->get_var( "SELECT COUNT(*) FROM {$this->table_name}" ) ) : 0;
+echo "--- System Diagnostics Report ---\n";
+echo "Website URL: " . esc_html( get_site_url() ) . "\n";
+echo "Plugin Version: Review Funnel Plugin v1.0\n";
+echo "WordPress Version: " . esc_html( get_bloginfo( 'version' ) ) . "\n";
+echo "PHP Version: " . esc_html( phpversion() ) . "\n";
+echo "Database Table: " . ( $table_exists ? "Connected (" . $review_count . " reviews)" : "Missing Table" ) . "\n";
+echo "cURL Extension: " . ( function_exists( 'curl_version' ) ? "Available" : "Missing" ) . "\n";
+echo "OpenSSL Extension: " . ( extension_loaded( 'openssl' ) ? "Available" : "Missing" ) . "\n";
+echo "Google Direct URL: " . ( ! empty( $direct_url ) ? "Configured (" . esc_html( $direct_url ) . ")" : "Not set" ) . "\n";
+echo "Google Places API Key: " . ( ! empty( $api_key ) ? "Configured (" . esc_html( substr( $api_key, 0, 6 ) ) . "...)" : "Not set" ) . "\n";
+echo "Google Place ID: " . ( ! empty( $place_id ) ? "Configured (" . esc_html( $place_id ) . ")" : "Not set" ) . "\n";
+echo "MailerLite API Key: " . ( ! empty( $mailerlite_api_key ) ? "Configured" : "Not set" ) . "\n";
+echo "Cloudflare Turnstile: " . ( 'yes' === $enable_turnstile ? "Enabled" : "Disabled" ) . "\n";
+?></textarea>
+
+							<p class="submit" style="margin-top: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+								<button type="submit" name="send_wprf_support_email" class="button button-primary button-large">
+									<span class="dashicons dashicons-send" style="vertical-align: middle; margin-right: 4px;"></span>
+									<?php esc_html_e( 'Send Support Request & Diagnostic Report', 'review-funnel' ); ?>
+								</button>
+								<button type="button" id="wprf_copy_diag_btn" class="button button-secondary button-large" style="font-weight: 600;">
+									<span class="dashicons dashicons-clipboard" style="vertical-align: middle; margin-right: 4px;"></span>
+									<?php esc_html_e( 'Copy Diagnostic Report to Clipboard', 'review-funnel' ); ?>
+								</button>
+								<a href="mailto:lechwyzewski@gmail.com?subject=Review%20Funnel%20Support%20Request" class="button button-secondary button-large" style="font-weight: 600; text-decoration: none;">
+									<span class="dashicons dashicons-email" style="vertical-align: middle; margin-right: 4px;"></span>
+									<?php esc_html_e( 'Open Direct Email App', 'review-funnel' ); ?>
+								</a>
+							</p>
+						</form>
 					</div>
 				</div>
 
@@ -1222,27 +1808,172 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 			</div>
 
 			<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				const tabs = document.querySelectorAll('.nav-tab-wrapper .nav-tab');
-				const contents = document.querySelectorAll('.tab-content-section');
+			window.wprfSwitchTab = function(targetId) {
+				var allMainTabIds = ['tab-reviews', 'tab-settings', 'tab-translations', 'tab-shortcodes', 'tab-support'];
+				if (allMainTabIds.indexOf(targetId) === -1) {
+					targetId = 'tab-reviews';
+				}
 
-				tabs.forEach(tab => {
-					tab.addEventListener('click', function(e) {
+				allMainTabIds.forEach(function(id) {
+					var el = document.getElementById(id);
+					if (el) {
+						el.style.display = (id === targetId) ? 'block' : 'none';
+					}
+					var link = document.querySelector('.nav-tab-wrapper .nav-tab[data-tab="' + id + '"]');
+					if (link) {
+						if (id === targetId) {
+							link.classList.add('nav-tab-active');
+						} else {
+							link.classList.remove('nav-tab-active');
+						}
+					}
+				});
+
+				try {
+					sessionStorage.setItem('wprf_active_tab', targetId);
+				} catch(e) {}
+			};
+
+			window.wprfSwitchSubtab = function(targetSubtab) {
+				var allSubtabIds = ['subtab-google', 'subtab-privacy', 'subtab-email', 'subtab-spam', 'subtab-mailerlite', 'subtab-design'];
+				if (allSubtabIds.indexOf(targetSubtab) === -1) {
+					targetSubtab = 'subtab-google';
+				}
+
+				allSubtabIds.forEach(function(id) {
+					var el = document.getElementById(id);
+					if (el) {
+						el.style.display = (id === targetSubtab) ? 'block' : 'none';
+					}
+					var btn = document.querySelector('.wprf-subnav-bar .wprf-subnav-btn[data-subtab="' + id + '"]');
+					if (btn) {
+						if (id === targetSubtab) {
+							btn.classList.remove('button-secondary');
+							btn.classList.add('button-primary');
+						} else {
+							btn.classList.remove('button-primary');
+							btn.classList.add('button-secondary');
+						}
+					}
+				});
+
+				try {
+					sessionStorage.setItem('wprf_active_subtab', targetSubtab);
+				} catch(e) {}
+			};
+
+			document.addEventListener('DOMContentLoaded', function() {
+				var allMainTabIds = ['tab-reviews', 'tab-settings', 'tab-translations', 'tab-shortcodes', 'tab-support'];
+				var startTab = 'tab-reviews';
+				if (window.location.hash) {
+					var hash = window.location.hash.replace('#', '');
+					if (allMainTabIds.indexOf(hash) !== -1) {
+						startTab = hash;
+					}
+				} else {
+					try {
+						var savedTab = sessionStorage.getItem('wprf_active_tab');
+						if (savedTab && allMainTabIds.indexOf(savedTab) !== -1) {
+							startTab = savedTab;
+						}
+					} catch(e) {}
+				}
+				window.wprfSwitchTab(startTab);
+
+				var allSubtabIds = ['subtab-google', 'subtab-privacy', 'subtab-email', 'subtab-spam', 'subtab-mailerlite', 'subtab-design'];
+				var startSubtab = 'subtab-google';
+				try {
+					var savedSub = sessionStorage.getItem('wprf_active_subtab');
+					if (savedSub && allSubtabIds.indexOf(savedSub) !== -1) {
+						startSubtab = savedSub;
+					}
+				} catch(e) {}
+				window.wprfSwitchSubtab(startSubtab);
+
+				// Restructured Appearance Sub-navigation vertical sidebar switching
+				const sidebarItems = document.querySelectorAll('.wprf-appearance-menu-item');
+				const panes = document.querySelectorAll('.wprf-appearance-section-pane');
+
+				sidebarItems.forEach(item => {
+					item.addEventListener('click', function(e) {
 						e.preventDefault();
 						
-						tabs.forEach(t => t.classList.remove('nav-tab-active'));
-						contents.forEach(c => c.style.display = 'none');
+						sidebarItems.forEach(i => i.classList.remove('active'));
+						panes.forEach(pane => pane.style.display = 'none');
 						
-						this.classList.add('nav-tab-active');
+						this.classList.add('active');
 						
-						const targetId = this.getAttribute('data-tab');
-						const targetContent = document.getElementById(targetId);
-						
-						if (targetContent) {
-							targetContent.style.display = 'block';
+						const targetSectionId = this.getAttribute('data-appearance-section');
+						const targetPane = document.getElementById(targetSectionId);
+						if (targetPane) {
+							targetPane.style.display = 'block';
 						}
+						
+						try {
+							sessionStorage.setItem('wprf_active_appearance_section', targetSectionId);
+						} catch(e) {}
 					});
 				});
+
+				// Restore active appearance section from sessionStorage
+				try {
+					const savedSection = sessionStorage.getItem('wprf_active_appearance_section');
+					if (savedSection) {
+						const activeItem = document.querySelector(`.wprf-appearance-menu-item[data-appearance-section="${savedSection}"]`);
+						if (activeItem) {
+							sidebarItems.forEach(i => i.classList.remove('active'));
+							panes.forEach(pane => pane.style.display = 'none');
+							
+							activeItem.classList.add('active');
+							const targetPane = document.getElementById(savedSection);
+							if (targetPane) {
+								targetPane.style.display = 'block';
+							}
+						}
+					}
+				} catch(e) {}
+				// Copy System Diagnostic Report to Clipboard
+				const copyDiagBtn = document.getElementById('wprf_copy_diag_btn');
+				if (copyDiagBtn) {
+					copyDiagBtn.addEventListener('click', function(e) {
+						e.preventDefault();
+						const msg = document.getElementById('wprf_support_message') ? document.getElementById('wprf_support_message').value : '';
+						const diagText = document.getElementById('wprf_raw_diag_report') ? document.getElementById('wprf_raw_diag_report').value : '';
+						const fullText = "Review Funnel Support Request & Diagnostic Report\n==============================================\n" + (msg ? "User Message:\n" + msg + "\n\n" : "") + diagText;
+						
+						if (navigator.clipboard && navigator.clipboard.writeText) {
+							navigator.clipboard.writeText(fullText).then(function() {
+								copyDiagBtn.textContent = '✔ Copied to Clipboard!';
+								setTimeout(function() {
+									copyDiagBtn.innerHTML = '<span class="dashicons dashicons-clipboard" style="vertical-align: middle; margin-right: 4px;"></span> Copy Diagnostic Report to Clipboard';
+								}, 2500);
+							});
+						} else {
+							alert("Diagnostic Report:\n\n" + fullText);
+						}
+					});
+				}
+
+				// Media Uploader for Custom Anonymous Avatar Icon
+				const uploadAvatarBtn = document.getElementById('wprf_upload_avatar_btn');
+				const customAvatarInput = document.getElementById('wprf_custom_avatar_url');
+				if (uploadAvatarBtn && customAvatarInput) {
+					uploadAvatarBtn.addEventListener('click', function(e) {
+						e.preventDefault();
+						if (typeof wp !== 'undefined' && wp.media) {
+							let frame = wp.media({
+								title: 'Select Custom Anonymous Avatar Icon',
+								button: { text: 'Use as Default Avatar' },
+								multiple: false
+							});
+							frame.on('select', function() {
+								let attachment = frame.state().get('selection').first().toJSON();
+								customAvatarInput.value = attachment.url;
+							});
+							frame.open();
+						}
+					});
+				}
 
 				// Select All bulk checkboxes toggle
 				const selectAll = document.getElementById('wprf-select-all-checkbox');
@@ -1301,6 +2032,9 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				let currentTargetInputId = '';
 
 				function updateGradientPreview() {
+					if (!gradC1 || !gradC2 || !gradAngle || !gradPreview || !gradAngleVal) {
+						return;
+					}
 					const c1 = gradC1.value;
 					const c2 = gradC2.value;
 					const angle = gradAngle.value;
@@ -1309,35 +2043,43 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 					gradAngleVal.textContent = `${angle}°`;
 				}
 
-				gradC1.addEventListener('input', function() {
-					gradC1Hex.value = this.value;
-					updateGradientPreview();
-				});
-				gradC1Hex.addEventListener('input', function() {
-					const val = this.value.trim();
-					if (/^#[0-9A-F]{6}$/i.test(val)) {
-						gradC1.value = val;
+				if (gradC1 && gradC1Hex) {
+					gradC1.addEventListener('input', function() {
+						gradC1Hex.value = this.value;
 						updateGradientPreview();
-					}
-				});
-				gradC2.addEventListener('input', function() {
-					gradC2Hex.value = this.value;
-					updateGradientPreview();
-				});
-				gradC2Hex.addEventListener('input', function() {
-					const val = this.value.trim();
-					if (/^#[0-9A-F]{6}$/i.test(val)) {
-						gradC2.value = val;
+					});
+					gradC1Hex.addEventListener('input', function() {
+						const val = this.value.trim();
+						if (/^#[0-9A-F]{6}$/i.test(val)) {
+							gradC1.value = val;
+							updateGradientPreview();
+						}
+					});
+				}
+
+				if (gradC2 && gradC2Hex) {
+					gradC2.addEventListener('input', function() {
+						gradC2Hex.value = this.value;
 						updateGradientPreview();
-					}
-				});
-				gradAngle.addEventListener('input', updateGradientPreview);
+					});
+					gradC2Hex.addEventListener('input', function() {
+						const val = this.value.trim();
+						if (/^#[0-9A-F]{6}$/i.test(val)) {
+							gradC2.value = val;
+							updateGradientPreview();
+						}
+					});
+				}
+
+				if (gradAngle) {
+					gradAngle.addEventListener('input', updateGradientPreview);
+				}
 
 				document.querySelectorAll('.wprf-grad-preset').forEach(btn => {
 					btn.addEventListener('click', function() {
 						const g = this.getAttribute('data-g');
 						const matches = g.match(/linear-gradient\((\d+)deg,\s*(#[a-f0-9]+)\s+0%,\s*(#[a-f0-9]+)\s+100%\)/i);
-						if (matches) {
+						if (matches && gradAngle && gradC1 && gradC1Hex && gradC2 && gradC2Hex) {
 							gradAngle.value = matches[1];
 							gradC1.value = matches[2];
 							gradC1Hex.value = matches[2];
@@ -1355,46 +2097,52 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 						if (currentInput) {
 							const currentVal = currentInput.value.trim();
 							const matches = currentVal.match(/linear-gradient\((\d+)deg,\s*(#[a-f0-9]+)\s+0%,\s*(#[a-f0-9]+)\s+100%\)/i);
-							if (matches) {
+							if (matches && gradAngle && gradC1 && gradC1Hex && gradC2 && gradC2Hex) {
 								gradAngle.value = matches[1];
 								gradC1.value = matches[2];
 								gradC1Hex.value = matches[2];
 								gradC2.value = matches[3];
 								gradC2Hex.value = matches[3];
-							} else if (/^#[0-9A-F]{6}$/i.test(currentVal)) {
+							} else if (/^#[0-9A-F]{6}$/i.test(currentVal) && gradC1 && gradC1Hex && gradC2 && gradC2Hex) {
 								gradC1.value = currentVal;
 								gradC1Hex.value = currentVal;
 								gradC2.value = currentVal;
 								gradC2Hex.value = currentVal;
 							}
 							updateGradientPreview();
-							gradModal.style.display = 'flex';
+							if (gradModal) {
+								gradModal.style.display = 'flex';
+							}
 						}
 					});
 				});
 
 				function closeGradientModal() {
-					gradModal.style.display = 'none';
+					if (gradModal) {
+						gradModal.style.display = 'none';
+					}
 					currentTargetInputId = '';
 				}
-				cancelGradBtn.addEventListener('click', closeGradientModal);
-				closeGradBtn.addEventListener('click', closeGradientModal);
+				if (cancelGradBtn) { cancelGradBtn.addEventListener('click', closeGradientModal); }
+				if (closeGradBtn) { closeGradBtn.addEventListener('click', closeGradientModal); }
 
-				applyGradBtn.addEventListener('click', function() {
-					if (currentTargetInputId) {
-						const c1 = gradC1.value;
-						const c2 = gradC2.value;
-						const angle = gradAngle.value;
-						const css = `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
-						
-						const targetInput = document.getElementById(currentTargetInputId);
-						if (targetInput) {
-							targetInput.value = css;
-							targetInput.dispatchEvent(new Event('input'));
+				if (applyGradBtn) {
+					applyGradBtn.addEventListener('click', function() {
+						if (currentTargetInputId && gradC1 && gradC2 && gradAngle) {
+							const c1 = gradC1.value;
+							const c2 = gradC2.value;
+							const angle = gradAngle.value;
+							const css = `linear-gradient(${angle}deg, ${c1} 0%, ${c2} 100%)`;
+							
+							const targetInput = document.getElementById(currentTargetInputId);
+							if (targetInput) {
+								targetInput.value = css;
+								targetInput.dispatchEvent(new Event('input'));
+							}
 						}
-					}
-					closeGradientModal();
-				});
+						closeGradientModal();
+					});
+				}
 			});
 			</script>
 			<?php
@@ -1439,6 +2187,13 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 				update_option( 'wprf_google_redirect_msg', sanitize_textarea_field( $_POST['wprf_google_redirect_msg'] ) );
 
 				// PRO custom styling options
+				if ( isset( $_POST['wprf_default_layout'] ) ) {
+					update_option( 'wprf_default_layout', sanitize_text_field( $_POST['wprf_default_layout'] ) );
+				}
+				update_option( 'wprf_enable_filters', isset( $_POST['wprf_enable_filters'] ) ? 'true' : 'false' );
+				if ( isset( $_POST['wprf_custom_avatar_url'] ) ) {
+					update_option( 'wprf_custom_avatar_url', esc_url_raw( $_POST['wprf_custom_avatar_url'] ) );
+				}
 				update_option( 'wprf_form_bg_color', sanitize_text_field( $_POST['wprf_form_bg_color'] ) );
 				update_option( 'wprf_form_border_style', sanitize_text_field( $_POST['wprf_form_border_style'] ) );
 				update_option( 'wprf_form_border_width', sanitize_text_field( $_POST['wprf_form_border_width'] ) );
@@ -1535,6 +2290,90 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 					echo '<div class="updated"><p>' . sprintf( esc_html__( 'Successfully deleted %d reviews in bulk.', 'review-funnel' ), count( $ids_to_delete ) ) . '</p></div>';
 				} else {
 					echo '<div class="error"><p>' . esc_html__( 'No reviews selected or action invalid.', 'review-funnel' ) . '</p></div>';
+				}
+			}
+			// Action H: Send Support & Diagnostic Report Email
+			if ( isset( $_POST['send_wprf_support_email'] ) ) {
+				check_admin_referer( 'wprf_support_send_action', 'wprf_support_send_nonce' );
+
+				$recipient_email = ! empty( $_POST['wprf_support_recipient'] ) ? sanitize_email( $_POST['wprf_support_recipient'] ) : 'lechwyzewski@gmail.com';
+				$user_email      = ! empty( $_POST['wprf_support_reply_to'] ) ? sanitize_email( $_POST['wprf_support_reply_to'] ) : get_option( 'admin_email' );
+				$user_message    = ! empty( $_POST['wprf_support_message'] ) ? sanitize_textarea_field( $_POST['wprf_support_message'] ) : '';
+				$include_diag    = isset( $_POST['wprf_include_diagnostics'] ) && 'yes' === $_POST['wprf_include_diagnostics'];
+
+				if ( ! is_email( $recipient_email ) ) {
+					$recipient_email = 'lechwyzewski@gmail.com';
+				}
+
+				$site_name = get_bloginfo( 'name' );
+				$site_url  = get_site_url();
+				$subject   = sprintf( '[Review Funnel Support] Diagnostic Report from %s (%s)', $site_name, $site_url );
+
+				$body  = "Review Funnel Plugin - Support Request & System Status\n";
+				$body .= "======================================================\n\n";
+				$body .= "Website URL: " . $site_url . "\n";
+				$body .= "Website Name: " . $site_name . "\n";
+				$body .= "Admin Email / Reply-To: " . $user_email . "\n";
+				$body .= "Submitted Date: " . date_i18n( 'Y-m-d H:i:s' ) . "\n\n";
+
+				$body .= "--- User Message / Description ---\n";
+				$body .= ! empty( $user_message ) ? $user_message . "\n\n" : "(No description provided)\n\n";
+
+				if ( $include_diag ) {
+					$table_name = $wpdb->prefix . 'review_funnel';
+					$table_exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name;
+					$review_count = $table_exists ? intval( $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" ) ) : 0;
+
+					$direct_url  = get_option( 'wprf_google_direct_url', '' );
+					$api_key     = get_option( 'wprf_google_api_key', '' );
+					$place_id    = get_option( 'wprf_google_place_id', '' );
+					$ml_key      = get_option( 'wprf_mailerlite_api_key', '' );
+					$turnstile   = get_option( 'wprf_enable_turnstile', 'no' );
+
+					$body .= "--- System Diagnostics Report ---\n";
+					$body .= "Plugin Version: Review Funnel Plugin v1.0\n";
+					$body .= "WordPress Version: " . get_bloginfo( 'version' ) . "\n";
+					$body .= "PHP Version: " . phpversion() . "\n";
+					$body .= "Database Table: " . ( $table_exists ? "Connected (" . $review_count . " reviews)" : "Missing Table" ) . "\n";
+					$body .= "cURL Extension: " . ( function_exists( 'curl_version' ) ? "Available" : "Missing" ) . "\n";
+					$body .= "OpenSSL Extension: " . ( extension_loaded( 'openssl' ) ? "Available" : "Missing" ) . "\n";
+					$body .= "Google Direct URL: " . ( ! empty( $direct_url ) ? "Configured (" . $direct_url . ")" : "Not set" ) . "\n";
+					$body .= "Google Places API Key: " . ( ! empty( $api_key ) ? "Configured (" . substr( $api_key, 0, 6 ) . "...)" : "Not set" ) . "\n";
+					$body .= "Google Place ID: " . ( ! empty( $place_id ) ? "Configured (" . $place_id . ")" : "Not set" ) . "\n";
+					$body .= "MailerLite API Key: " . ( ! empty( $ml_key ) ? "Configured" : "Not set" ) . "\n";
+					$body .= "Cloudflare Turnstile: " . ( 'yes' === $turnstile ? "Enabled" : "Disabled" ) . "\n";
+				}
+
+				$headers = array( 'Content-Type: text/plain; charset=UTF-8' );
+				if ( is_email( $user_email ) ) {
+					$headers[] = 'Reply-To: ' . $user_email;
+				}
+
+				$mail_error_msg = '';
+				$mail_failed_callback = function( $wp_error ) use ( &$mail_error_msg ) {
+					if ( is_wp_error( $wp_error ) ) {
+						$mail_error_msg = $wp_error->get_error_message();
+					}
+				};
+				add_action( 'wp_mail_failed', $mail_failed_callback );
+
+				$sent = wp_mail( $recipient_email, $subject, $body, $headers );
+
+				remove_action( 'wp_mail_failed', $mail_failed_callback );
+
+				self::log_mail_event( $recipient_email, $subject, $sent, $mail_error_msg );
+
+				if ( $sent ) {
+					echo '<div class="updated"><p>' . sprintf( esc_html__( 'Support ticket and system diagnostic report sent successfully to %s.', 'review-funnel' ), esc_html( $recipient_email ) ) . '</p></div>';
+				} else {
+					echo '<div class="error"><p>';
+					echo esc_html__( 'Failed to send support email via server wp_mail().', 'review-funnel' );
+					if ( ! empty( $mail_error_msg ) ) {
+						echo ' <strong>' . esc_html__( 'Server Error Details:', 'review-funnel' ) . '</strong> ' . esc_html( $mail_error_msg );
+					} else {
+						echo ' ' . esc_html__( 'Please use the "Copy Diagnostic Report to Clipboard" button below to send it manually.', 'review-funnel' );
+					}
+					echo '</p></div>';
 				}
 			}
 
@@ -1739,6 +2578,28 @@ if ( ! class_exists( 'WPRF_Admin' ) ) {
 
 			update_option( 'wprf_mailerlite_error', 'Invalid response format: ' . substr( $body, 0, 200 ) );
 			return array();
+		}
+
+		/**
+		 * Helper to log outgoing plugin email delivery attempts.
+		 */
+		public static function log_mail_event( $recipient, $subject, $success, $error = '' ) {
+			$logs = get_option( 'wprf_mail_logs', array() );
+			if ( ! is_array( $logs ) ) {
+				$logs = array();
+			}
+
+			array_unshift( $logs, array(
+				'timestamp' => date_i18n( 'Y-m-d H:i:s' ),
+				'recipient' => $recipient,
+				'subject'   => $subject,
+				'status'    => $success ? 'SUCCESS' : 'FAILED',
+				'error'     => $error,
+			) );
+
+			// Keep last 15 log entries
+			$logs = array_slice( $logs, 0, 15 );
+			update_option( 'wprf_mail_logs', $logs );
 		}
 	}
 }

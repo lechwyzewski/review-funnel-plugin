@@ -363,3 +363,144 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+/* Pro Interactivity: Rating Filters & AJAX Load More */
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.wprf-filter-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    const wrapper = btn.closest('.wprf-filters-wrapper');
+    if (!wrapper) return;
+
+    const targetId = wrapper.getAttribute('data-target');
+    const container = document.getElementById(targetId);
+    if (!container) return;
+
+    const buttons = wrapper.querySelectorAll('.wprf-filter-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filterValue = btn.getAttribute('data-filter');
+    const cards = container.querySelectorAll('.wprf-review-card');
+
+    cards.forEach(card => {
+        const rating = card.getAttribute('data-rating');
+        if (filterValue === 'all' || String(rating) === String(filterValue)) {
+            card.style.display = 'flex';
+            card.style.opacity = '1';
+        } else {
+            card.style.display = 'none';
+            card.style.opacity = '0';
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 2. AJAX Load More Pagination
+    const loadMoreButtons = document.querySelectorAll('.wprf-load-more-btn');
+    loadMoreButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = btn.getAttribute('data-target');
+            const container = document.getElementById(targetId);
+            if (!container) return;
+
+            const profileId = btn.getAttribute('data-profile-id');
+            const columns = btn.getAttribute('data-columns');
+            const charLimit = btn.getAttribute('data-char-limit');
+            const showDate = btn.getAttribute('data-show-date');
+            const theme = btn.getAttribute('data-theme');
+            const offset = parseInt(btn.getAttribute('data-offset')) || 0;
+            const perPage = parseInt(btn.getAttribute('data-per-page')) || 6;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = (typeof wprf_frontend_vars !== 'undefined' && wprf_frontend_vars.t_js_processing) ? wprf_frontend_vars.t_js_processing : 'Loading...';
+            btn.disabled = true;
+
+            // Generate skeleton loaders
+            const skeletonHtml = `
+                <div class="wprf-skeleton-card wprf-temp-skeleton">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                        <div class="wprf-skeleton-line wprf-skeleton-avatar"></div>
+                        <div style="flex-grow:1; display:flex; flex-direction:column; gap:6px;">
+                            <div class="wprf-skeleton-line" style="height:12px; width:45%;"></div>
+                            <div class="wprf-skeleton-line" style="height:10px; width:25%;"></div>
+                        </div>
+                    </div>
+                    <div class="wprf-skeleton-line wprf-skeleton-text"></div>
+                    <div class="wprf-skeleton-line wprf-skeleton-text"></div>
+                    <div class="wprf-skeleton-line wprf-skeleton-text short"></div>
+                </div>
+            `;
+            
+            // Append 3 skeletons for visual loading preview
+            for (let i = 0; i < 3; i++) {
+                container.insertAdjacentHTML('beforeend', skeletonHtml);
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'wprf_load_more_reviews');
+            formData.append('profile_id', profileId);
+            formData.append('char_limit', charLimit);
+            formData.append('show_date', showDate);
+            formData.append('theme', theme);
+            formData.append('offset', offset);
+            formData.append('per_page', perPage);
+
+            fetch(wprf_frontend_vars.ajax_url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(res => {
+                // Remove skeletons
+                const skeletons = container.querySelectorAll('.wprf-temp-skeleton');
+                skeletons.forEach(sk => sk.remove());
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                if (res.success && res.data.html) {
+                    // Create wrapper elements to extract cards cleanly
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = res.data.html;
+                    const newCards = tempDiv.querySelectorAll('.wprf-review-card');
+
+                    // Detect currently active filter button in parent wrapper
+                    const filterWrapper = document.querySelector(`.wprf-filters-wrapper[data-target="${targetId}"]`);
+                    const activeFilterBtn = filterWrapper ? filterWrapper.querySelector('.wprf-filter-btn.active') : null;
+                    const activeFilter = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
+
+                    newCards.forEach(card => {
+                        const rating = card.getAttribute('data-rating');
+                        if (activeFilter === 'all' || rating === activeFilter) {
+                            card.style.display = 'flex';
+                            card.style.opacity = '1';
+                        } else {
+                            card.style.display = 'none';
+                            card.style.opacity = '0';
+                        }
+                        container.appendChild(card);
+                    });
+
+                    // Update offset
+                    btn.setAttribute('data-offset', offset + perPage);
+
+                    // If no more reviews, hide the button
+                    if (!res.data.has_more) {
+                        btn.closest('.wprf-load-more-wrapper').remove();
+                    }
+                } else {
+                    btn.closest('.wprf-load-more-wrapper').remove();
+                }
+            })
+            .catch(err => {
+                const skeletons = container.querySelectorAll('.wprf-temp-skeleton');
+                skeletons.forEach(sk => sk.remove());
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+    });
+});
+
